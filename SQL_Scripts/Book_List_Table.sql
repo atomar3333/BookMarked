@@ -1,0 +1,9 @@
+CREATE TABLE book_list (
+  id BIGINT PRIMARY KEY auto_increment,
+  list_id BIGINT NOT NULL,
+  book_id BIGINT NOT NULL,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(list_id) REFERENCES lists(id) ON DELETE CASCADE,
+  FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE,
+  UNIQUE KEY (list_id,book_id)
+);
