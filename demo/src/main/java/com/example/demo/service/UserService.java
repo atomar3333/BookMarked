@@ -42,6 +42,18 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
+    public User updateUser(Long userId, UserRegistrationDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        
+        user.setUserName(request.getUserName());
+        user.setEmailId(request.getEmailId());
+        user.setPasswordHash(request.getPassword());
+        user.setBio(request.getBio());
+        
+        return userRepository.save(user);
+    }
+
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);

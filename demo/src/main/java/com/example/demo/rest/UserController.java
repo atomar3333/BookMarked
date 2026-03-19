@@ -40,6 +40,18 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> updateUserProfile(
+            @PathVariable Long userId,
+            @RequestBody UserRegistrationDto request) {
+        try {
+            User updatedUser = userService.updateUser(userId, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUserAccount(@PathVariable Long userId) {
         try {
