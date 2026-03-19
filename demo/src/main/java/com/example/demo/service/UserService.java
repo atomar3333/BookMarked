@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.entity.User;
+import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -38,5 +39,9 @@ public class UserService {
             throw new RuntimeException("User not found with ID: " + userId);
         }
         userRepository.deleteById(userId);
+    }
+
+    public List<User> searchUsersByName(String userName) {
+        return userRepository.findByUserNameContainingIgnoreCase(userName);
     }
 }
