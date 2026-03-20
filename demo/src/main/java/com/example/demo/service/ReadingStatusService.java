@@ -93,6 +93,7 @@ public class ReadingStatusService {
         return mapToDto(status);
     }
 
+    //pending update bugs for state changes
     public ReadingStatusDto updateReadingStatus(Long statusId, ReadingStatusDto request) {
         ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));
