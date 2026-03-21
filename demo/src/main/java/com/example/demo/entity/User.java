@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.example.demo.entity.Role;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class User {
     private String emailId;
     //
     @Column(name = "password_hash", nullable = false, length = 255)
+    @JsonIgnore
     private String passwordHash;
 
     @Column(name = "bio", columnDefinition = "TEXT")
