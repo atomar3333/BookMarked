@@ -24,6 +24,13 @@ export interface UserSearchItem {
   bio?: string
 }
 
+export interface UserProfileItem {
+  id: number
+  userName: string
+  emailId?: string
+  bio?: string
+}
+
 export interface ReviewItem {
   id: number
   userId: number

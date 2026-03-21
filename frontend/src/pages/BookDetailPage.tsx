@@ -1,18 +1,38 @@
 import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
+import Badge from 'react-bootstrap/Badge'
 import Card from 'react-bootstrap/Card'
 import Col from 'react-bootstrap/Col'
+import ListGroup from 'react-bootstrap/ListGroup'
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
 import { useParams } from 'react-router-dom'
-import { getBookAverageRating, getBookById, getBookReviews } from '../api/search'
+import {
+  getBookAverageRating,
+  getBookById,
+  getBookReviews,
+  getUserById,
+} from '../api/search'
 import type { BookDetail, ReviewItem } from '../types/search'
 
 interface RatingDistributionItem {
   stars: number
   count: number
   percentage: number
+}
+
+function formatReviewDate(value?: string): string {
+  if (!value) {
+    return 'Unknown date'
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Unknown date'
+  }
+
+  return parsed.toLocaleDateString()
 }
 
 function buildDistribution(reviews: ReviewItem[]): RatingDistributionItem[] {
@@ -45,6 +65,7 @@ function BookDetailPage() {
   const [book, setBook] = useState<BookDetail | null>(null)
   const [averageRating, setAverageRating] = useState<number | null>(null)
   const [reviews, setReviews] = useState<ReviewItem[]>([])
+  const [reviewUserNames, setReviewUserNames] = useState<Record<number, string>>({})
   const [ratingWarning, setRatingWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +99,33 @@ function BookDetailPage() {
         }
 
         if (reviewsResult.status === 'fulfilled') {
-          setReviews(reviewsResult.value)
+          const reviewItems = reviewsResult.value
+          setReviews(reviewItems)
+
+          const uniqueUserIds = Array.from(new Set(reviewItems.map((item) => item.userId)))
+          if (uniqueUserIds.length > 0) {
+            const userResults = await Promise.allSettled(
+              uniqueUserIds.map((userId) => getUserById(userId)),
+            )
+
+            const usersById: Record<number, string> = {}
+            let hasUserLookupFailure = false
+
+            userResults.forEach((result, index) => {
+              if (result.status === 'fulfilled') {
+                usersById[result.value.id] = result.value.userName
+              } else {
+                hasUserLookupFailure = true
+                usersById[uniqueUserIds[index]] = `User #${uniqueUserIds[index]}`
+              }
+            })
+
+            setReviewUserNames(usersById)
+
+            if (hasUserLookupFailure) {
+              setRatingWarning('Some reviewer names are unavailable right now.')
+            }
+          }
         } else {
           setRatingWarning('Rating distribution is unavailable right now.')
         }
@@ -159,11 +206,39 @@ function BookDetailPage() {
             </div>
 
             <h6>Description</h6>
-            <p className="mb-0">
+            <p className="mb-4">
               {book.description && book.description.trim().length > 0
                 ? book.description
                 : 'No description available for this book yet.'}
             </p>
+
+            <h6 className="mb-3">Reviews</h6>
+            {reviews.length === 0 ? (
+              <Alert variant="light" className="mb-0">
+                No reviews yet for this book.
+              </Alert>
+            ) : (
+              <ListGroup variant="flush" className="book-review-list">
+                {reviews.map((review) => (
+                  <ListGroup.Item key={review.id} className="px-0">
+                    <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
+                      <div className="d-flex align-items-center gap-2">
+                        <Badge bg="dark">{Math.max(1, Math.min(5, Math.round(review.rating)))}★</Badge>
+                        <span className="text-muted small">
+                          {reviewUserNames[review.userId] ?? `User #${review.userId}`}
+                        </span>
+                      </div>
+                      <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
+                    </div>
+                    <div className="mb-0">
+                      {review.reviewText && review.reviewText.trim().length > 0
+                        ? review.reviewText
+                        : 'No review text provided.'}
+                    </div>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            )}
           </Col>
         </Row>
       </Card.Body>

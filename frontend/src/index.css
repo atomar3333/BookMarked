@@ -77,3 +77,7 @@ body {
   width: 1.5rem;
   text-align: right;
 }
+
+.book-review-list .list-group-item {
+  border-color: #e9ecef;
+}

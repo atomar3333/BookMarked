@@ -4,6 +4,7 @@ import type {
   BookSearchItem,
   ReviewItem,
   UnifiedSearchResult,
+  UserProfileItem,
   UserSearchItem,
 } from '../types/search'
 
@@ -48,6 +49,11 @@ export async function getBookAverageRating(bookId: number): Promise<number> {
 
 export async function getBookReviews(bookId: number): Promise<ReviewItem[]> {
   const response = await apiClient.get<ReviewItem[]>(`/api/reviews/books/${bookId}`)
+  return response.data
+}
+
+export async function getUserById(userId: number): Promise<UserProfileItem> {
+  const response = await apiClient.get<UserProfileItem>(`/api/users/${userId}`)
   return response.data
 }
 
