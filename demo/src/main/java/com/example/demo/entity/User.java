@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,6 +35,10 @@ public class User {
 
     @Column(name = "profile_picture_url", length = 255)
     private String profilePictureUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role = Role.ROLE_USER;
 
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private List<Review> reviews;
@@ -104,6 +109,14 @@ public class User {
 
     public void setProfilePictureUrl(String profilePictureUrl) {
         this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
 //    public List<Review> getReviews() {

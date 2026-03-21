@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.UserRegistrationDto;
+import com.example.demo.entity.Role;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ public class UserService {
         user.setEmailId(request.getEmailId());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setBio(request.getBio());
+        user.setRole(Role.ROLE_USER);
 
         return userRepository.save(user);
     }
