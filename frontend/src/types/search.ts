@@ -6,6 +6,17 @@ export interface BookSearchItem {
   description?: string
 }
 
+export interface BookDetail {
+  id: number
+  googleBooksId?: string
+  title: string
+  author: string
+  isbn?: string
+  coverImageUrl?: string
+  description?: string
+  publishDate?: string
+}
+
 export interface UserSearchItem {
   id: number
   userName: string

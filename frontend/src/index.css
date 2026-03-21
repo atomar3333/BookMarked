@@ -20,3 +20,44 @@ body {
   max-width: 460px;
   margin: 0 auto;
 }
+
+.book-result-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.book-result-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.book-result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.book-template-card {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.book-cover-image {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.book-cover-placeholder {
+  width: 100%;
+  max-width: 300px;
+  min-height: 380px;
+  border-radius: 8px;
+  background: #e9ecef;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}

@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import type {
+  BookDetail,
   BookSearchItem,
   UnifiedSearchResult,
   UserSearchItem,
@@ -32,6 +33,11 @@ function asWarning(prefix: string, error: unknown): string {
     return `${prefix}: ${error.message}`
   }
   return `${prefix}: unable to load right now.`
+}
+
+export async function getBookById(bookId: number): Promise<BookDetail> {
+  const response = await apiClient.get<BookDetail>(`/api/books/${bookId}`)
+  return response.data
 }
 
 export async function unifiedSearch(query: string): Promise<UnifiedSearchResult> {

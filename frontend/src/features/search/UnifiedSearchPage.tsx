@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form'
 import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
+import { Link } from 'react-router-dom'
 import { unifiedSearch } from '../../api/search'
 import type { UnifiedSearchResult } from '../../types/search'
 
@@ -92,21 +93,23 @@ function UnifiedSearchPage() {
           <Row xs={1} md={2} className="g-3">
             {results.books.map((book) => (
               <Col key={book.id}>
-                <Card className="h-100">
-                  <Card.Body>
-                    <Card.Title>{book.title}</Card.Title>
-                    <Card.Subtitle className="mb-2 text-muted">
-                      {book.author}
-                    </Card.Subtitle>
-                    {book.description && (
-                      <Card.Text>
-                        {book.description.length > 180
-                          ? `${book.description.slice(0, 180)}...`
-                          : book.description}
-                      </Card.Text>
-                    )}
-                  </Card.Body>
-                </Card>
+                <Link to={`/books/${book.id}`} className="book-result-link">
+                  <Card className="h-100 book-result-card">
+                    <Card.Body>
+                      <Card.Title>{book.title}</Card.Title>
+                      <Card.Subtitle className="mb-2 text-muted">
+                        {book.author}
+                      </Card.Subtitle>
+                      {book.description && (
+                        <Card.Text>
+                          {book.description.length > 180
+                            ? `${book.description.slice(0, 180)}...`
+                            : book.description}
+                        </Card.Text>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Link>
               </Col>
             ))}
           </Row>
