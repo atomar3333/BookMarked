@@ -3,10 +3,10 @@ package com.example.demo.service;
 import com.example.demo.dto.UserRegistrationDto;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.demo.entity.User;
 import java.util.List;
@@ -15,18 +15,17 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public User createUser(UserRegistrationDto request) {
-        // Business Rule: Check for duplicates
-//        if (userRepository.findByUserName(request.getUserName()).isPresent()) {
-//            throw new RuntimeException("Username already exists!");
-//        }
+        if (userRepository.findByEmailId(request.getEmailId()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
 
         User user = new User();
         user.setUserName(request.getUserName());
         user.setEmailId(request.getEmailId());
-        // For now, storing as-is. Later, you'll add BCrypt hashing here.
-        user.setPasswordHash(request.getPassword());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setBio(request.getBio());
 
         return userRepository.save(user);
@@ -48,7 +47,9 @@ public class UserService {
         
         user.setUserName(request.getUserName());
         user.setEmailId(request.getEmailId());
-        user.setPasswordHash(request.getPassword());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
         user.setBio(request.getBio());
         
         return userRepository.save(user);
