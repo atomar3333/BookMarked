@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import type {
   BookDetail,
   BookSearchItem,
+  CreateReviewRequest,
   ReviewItem,
   UnifiedSearchResult,
   UserProfileItem,
@@ -54,6 +55,16 @@ export async function getBookReviews(bookId: number): Promise<ReviewItem[]> {
 
 export async function getUserById(userId: number): Promise<UserProfileItem> {
   const response = await apiClient.get<UserProfileItem>(`/api/users/${userId}`)
+  return response.data
+}
+
+export async function getCurrentUser(): Promise<UserProfileItem> {
+  const response = await apiClient.get<UserProfileItem>('/api/users/me')
+  return response.data
+}
+
+export async function createReview(payload: CreateReviewRequest): Promise<ReviewItem> {
+  const response = await apiClient.post<ReviewItem>('/api/reviews', payload)
   return response.data
 }
 

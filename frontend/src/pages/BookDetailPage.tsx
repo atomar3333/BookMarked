@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import Badge from 'react-bootstrap/Badge'
+import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Col from 'react-bootstrap/Col'
+import Form from 'react-bootstrap/Form'
 import ListGroup from 'react-bootstrap/ListGroup'
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
 import { useParams } from 'react-router-dom'
 import {
+  createReview,
   getBookAverageRating,
   getBookById,
   getBookReviews,
+  getCurrentUser,
   getUserById,
 } from '../api/search'
-import type { BookDetail, ReviewItem } from '../types/search'
+import type { BookDetail, ReviewItem, UserProfileItem } from '../types/search'
 
 interface RatingDistributionItem {
   stars: number
@@ -66,7 +70,14 @@ function BookDetailPage() {
   const [averageRating, setAverageRating] = useState<number | null>(null)
   const [reviews, setReviews] = useState<ReviewItem[]>([])
   const [reviewUserNames, setReviewUserNames] = useState<Record<number, string>>({})
+  const [currentUser, setCurrentUser] = useState<UserProfileItem | null>(null)
   const [ratingWarning, setRatingWarning] = useState<string | null>(null)
+  const [reviewText, setReviewText] = useState('')
+  const [selectedRating, setSelectedRating] = useState(0)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -80,10 +91,13 @@ function BookDetailPage() {
 
     const loadBook = async () => {
       try {
-        const [bookResult, averageResult, reviewsResult] = await Promise.allSettled([
+        setRatingWarning(null)
+
+        const [bookResult, averageResult, reviewsResult, currentUserResult] = await Promise.allSettled([
           getBookById(parsedId),
           getBookAverageRating(parsedId),
           getBookReviews(parsedId),
+          getCurrentUser(),
         ])
 
         if (bookResult.status === 'rejected') {
@@ -96,6 +110,12 @@ function BookDetailPage() {
           setAverageRating(averageResult.value)
         } else {
           setRatingWarning('Average rating is unavailable right now.')
+        }
+
+        if (currentUserResult.status === 'fulfilled') {
+          setCurrentUser(currentUserResult.value)
+        } else {
+          setCurrentUser(null)
         }
 
         if (reviewsResult.status === 'fulfilled') {
@@ -138,7 +158,7 @@ function BookDetailPage() {
     }
 
     loadBook()
-  }, [bookId])
+  }, [bookId, reloadToken])
 
   if (loading) {
     return (
@@ -158,6 +178,50 @@ function BookDetailPage() {
   }
 
   const distribution = buildDistribution(reviews)
+  const existingReview = currentUser
+    ? reviews.find((review) => review.userId === currentUser.id)
+    : undefined
+
+  const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setReviewError(null)
+    setReviewSuccess(null)
+
+    const parsedId = Number(bookId)
+    if (!currentUser) {
+      setReviewError('Unable to determine the current user.')
+      return
+    }
+
+    if (!parsedId || Number.isNaN(parsedId)) {
+      setReviewError('Invalid book id.')
+      return
+    }
+
+    if (selectedRating < 1 || selectedRating > 5) {
+      setReviewError('Please select a star rating from 1 to 5.')
+      return
+    }
+
+    setSubmittingReview(true)
+    try {
+      await createReview({
+        userId: currentUser.id,
+        bookId: parsedId,
+        reviewText,
+        rating: selectedRating,
+      })
+      setReviewText('')
+      setSelectedRating(0)
+      setReviewSuccess('Review submitted successfully.')
+      setReloadToken((value) => value + 1)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to submit review.'
+      setReviewError(message)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   return (
     <Card className="book-template-card shadow-sm">
@@ -211,6 +275,49 @@ function BookDetailPage() {
                 ? book.description
                 : 'No description available for this book yet.'}
             </p>
+
+            <h6 className="mb-3">Add Your Review</h6>
+            {reviewError && <Alert variant="danger">{reviewError}</Alert>}
+            {reviewSuccess && <Alert variant="success">{reviewSuccess}</Alert>}
+            {existingReview ? (
+              <Alert variant="info">
+                You have already reviewed this book.
+              </Alert>
+            ) : (
+              <Form onSubmit={handleReviewSubmit} className="mb-4">
+                <div className="mb-3">
+                  <div className="small text-muted mb-2">Your rating</div>
+                  <div className="star-rating-selector">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={star <= selectedRating ? 'star-button active' : 'star-button'}
+                        onClick={() => setSelectedRating(star)}
+                        aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Form.Group className="mb-3" controlId="review-text">
+                  <Form.Label>Review</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    value={reviewText}
+                    onChange={(event) => setReviewText(event.target.value)}
+                    placeholder="Write a short review"
+                  />
+                </Form.Group>
+
+                <Button type="submit" disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </Button>
+              </Form>
+            )}
 
             <h6 className="mb-3">Reviews</h6>
             {reviews.length === 0 ? (

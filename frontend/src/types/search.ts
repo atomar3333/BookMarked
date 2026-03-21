@@ -40,6 +40,13 @@ export interface ReviewItem {
   createdAt?: string
 }
 
+export interface CreateReviewRequest {
+  userId: number
+  bookId: number
+  reviewText: string
+  rating: number
+}
+
 export interface UnifiedSearchResult {
   books: BookSearchItem[]
   users: UserSearchItem[]

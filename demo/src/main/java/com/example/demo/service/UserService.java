@@ -75,6 +75,10 @@ public class UserService {
         return userRepository.findByUserNameContainingIgnoreCase(userName);
     }
 
+    public User getCurrentUser() {
+        return getCurrentUserOrThrow();
+    }
+
     private User getCurrentUserOrThrow() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {

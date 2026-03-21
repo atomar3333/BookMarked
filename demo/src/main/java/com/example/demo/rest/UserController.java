@@ -33,6 +33,15 @@ public class UserController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUserProfile() {
+        try {
+            return ResponseEntity.ok(userService.getCurrentUser());
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+    }
+
     @GetMapping("/all")
     public ResponseEntity<Page<User>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
