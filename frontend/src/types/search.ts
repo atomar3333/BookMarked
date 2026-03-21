@@ -47,6 +47,28 @@ export interface CreateReviewRequest {
   rating: number
 }
 
+export interface ListItem {
+  id: number
+  userId: number
+  title: string
+  description?: string
+  createdDate?: string
+}
+
+export interface CreateListRequest {
+  userId: number
+  title: string
+  description: string
+}
+
+export interface PageResponse<T> {
+  content: T[]
+  totalPages: number
+  totalElements: number
+  number: number
+  size: number
+}
+
 export interface UnifiedSearchResult {
   books: BookSearchItem[]
   users: UserSearchItem[]

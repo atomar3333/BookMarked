@@ -100,3 +100,19 @@ body {
 .star-button.active {
   color: #f59e0b;
 }
+
+.book-list-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.book-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  background: #fff;
+}

@@ -10,6 +10,7 @@ import ProgressBar from 'react-bootstrap/ProgressBar'
 import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
 import { useParams } from 'react-router-dom'
+import { addBookToList, createList, getListsByUser } from '../api/lists'
 import {
   createReview,
   getBookAverageRating,
@@ -18,7 +19,7 @@ import {
   getCurrentUser,
   getUserById,
 } from '../api/search'
-import type { BookDetail, ReviewItem, UserProfileItem } from '../types/search'
+import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types/search'
 
 interface RatingDistributionItem {
   stars: number
@@ -76,6 +77,14 @@ function BookDetailPage() {
   const [selectedRating, setSelectedRating] = useState(0)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
+  const [lists, setLists] = useState<ListItem[]>([])
+  const [listError, setListError] = useState<string | null>(null)
+  const [listSuccess, setListSuccess] = useState<string | null>(null)
+  const [listLoading, setListLoading] = useState(false)
+  const [creatingList, setCreatingList] = useState(false)
+  const [activeListId, setActiveListId] = useState<number | null>(null)
+  const [newListTitle, setNewListTitle] = useState('')
+  const [newListDescription, setNewListDescription] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -113,7 +122,22 @@ function BookDetailPage() {
         }
 
         if (currentUserResult.status === 'fulfilled') {
-          setCurrentUser(currentUserResult.value)
+          const user = currentUserResult.value
+          setCurrentUser(user)
+          setListLoading(true)
+
+          try {
+            const listPage = await getListsByUser(user.id)
+            setLists(listPage.content)
+          } catch (listLoadError) {
+            const message =
+              listLoadError instanceof Error
+                ? listLoadError.message
+                : 'Unable to load your lists right now.'
+            setListError(message)
+          } finally {
+            setListLoading(false)
+          }
         } else {
           setCurrentUser(null)
         }
@@ -223,6 +247,74 @@ function BookDetailPage() {
     }
   }
 
+  const parsedBookId = Number(bookId)
+
+  const handleAddToExistingList = async (listId: number) => {
+    setListError(null)
+    setListSuccess(null)
+
+    if (!parsedBookId || Number.isNaN(parsedBookId)) {
+      setListError('Invalid book id.')
+      return
+    }
+
+    setActiveListId(listId)
+    try {
+      await addBookToList(listId, parsedBookId)
+      const addedList = lists.find((item) => item.id === listId)
+      setListSuccess(
+        addedList ? `Added to "${addedList.title}".` : 'Book added to the selected list.',
+      )
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to add book to list.'
+      setListError(message)
+    } finally {
+      setActiveListId(null)
+    }
+  }
+
+  const handleCreateListAndAdd = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setListError(null)
+    setListSuccess(null)
+
+    if (!currentUser) {
+      setListError('Unable to determine the current user.')
+      return
+    }
+
+    if (!parsedBookId || Number.isNaN(parsedBookId)) {
+      setListError('Invalid book id.')
+      return
+    }
+
+    if (!newListTitle.trim()) {
+      setListError('List title is required.')
+      return
+    }
+
+    setCreatingList(true)
+    try {
+      const createdList = await createList({
+        userId: currentUser.id,
+        title: newListTitle.trim(),
+        description: newListDescription.trim(),
+      })
+
+      await addBookToList(createdList.id, parsedBookId)
+
+      setLists((existing) => [createdList, ...existing])
+      setNewListTitle('')
+      setNewListDescription('')
+      setListSuccess(`Created "${createdList.title}" and added this book to it.`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to create list.'
+      setListError(message)
+    } finally {
+      setCreatingList(false)
+    }
+  }
+
   return (
     <Card className="book-template-card shadow-sm">
       <Card.Body>
@@ -275,6 +367,75 @@ function BookDetailPage() {
                 ? book.description
                 : 'No description available for this book yet.'}
             </p>
+
+            <h6 className="mb-3">Add To List</h6>
+            {listError && <Alert variant="danger">{listError}</Alert>}
+            {listSuccess && <Alert variant="success">{listSuccess}</Alert>}
+
+            <div className="book-list-section mb-4">
+              <div className="mb-3">
+                <div className="small text-muted mb-2">Add to an existing list</div>
+                {listLoading ? (
+                  <div className="d-flex align-items-center gap-2">
+                    <Spinner animation="border" size="sm" />
+                    <span>Loading your lists...</span>
+                  </div>
+                ) : lists.length === 0 ? (
+                  <Alert variant="light" className="mb-0">
+                    You do not have any lists yet. Create one below.
+                  </Alert>
+                ) : (
+                  <div className="book-list-grid">
+                    {lists.map((list) => (
+                      <div key={list.id} className="book-list-item">
+                        <div>
+                          <div className="fw-semibold">{list.title}</div>
+                          {list.description && (
+                            <div className="text-muted small">{list.description}</div>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline-dark"
+                          disabled={activeListId === list.id || creatingList}
+                          onClick={() => handleAddToExistingList(list.id)}
+                        >
+                          {activeListId === list.id ? 'Adding...' : 'Add'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Form onSubmit={handleCreateListAndAdd}>
+                <div className="small text-muted mb-2">Create a new list</div>
+                <Form.Group className="mb-3" controlId="new-list-title">
+                  <Form.Label>List title</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={newListTitle}
+                    onChange={(event) => setNewListTitle(event.target.value)}
+                    placeholder="Favorites, Weekend Reads, Sci-Fi..."
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="new-list-description">
+                  <Form.Label>Description (optional)</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={newListDescription}
+                    onChange={(event) => setNewListDescription(event.target.value)}
+                    placeholder="What is this list for?"
+                  />
+                </Form.Group>
+
+                <Button type="submit" disabled={creatingList || activeListId !== null}>
+                  {creatingList ? 'Creating list...' : 'Create List And Add Book'}
+                </Button>
+              </Form>
+            </div>
 
             <h6 className="mb-3">Add Your Review</h6>
             {reviewError && <Alert variant="danger">{reviewError}</Alert>}
