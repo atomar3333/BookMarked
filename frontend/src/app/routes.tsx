@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import LoginPage from '../features/auth/LoginPage'
 import RegisterPage from '../features/auth/RegisterPage'
+import UnifiedSearchPage from '../features/search/UnifiedSearchPage'
 import HomePage from '../pages/HomePage'
 import ProfilePage from '../pages/ProfilePage'
 
@@ -14,6 +15,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/search" element={<UnifiedSearchPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -26,6 +26,9 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/">
               Home
             </Nav.Link>
+            <Nav.Link as={Link} to="/search">
+              Search
+            </Nav.Link>
             <Nav.Link as={Link} to="/profile">
               Protected Demo
             </Nav.Link>
