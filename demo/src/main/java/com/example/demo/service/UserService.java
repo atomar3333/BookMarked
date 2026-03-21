@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.demo.entity.User;
@@ -44,6 +47,8 @@ public class UserService {
     }
 
     public User updateUser(Long userId, UserRegistrationDto request) {
+        assertSelfOrAdmin(userId);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         
@@ -58,6 +63,8 @@ public class UserService {
     }
 
     public void deleteUser(Long userId) {
+        assertSelfOrAdmin(userId);
+
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
         }
@@ -66,5 +73,23 @@ public class UserService {
 
     public List<User> searchUsersByName(String userName) {
         return userRepository.findByUserNameContainingIgnoreCase(userName);
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertSelfOrAdmin(Long targetUserId) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(targetUserId)) {
+            throw new AccessDeniedException("You can only modify your own profile");
+        }
     }
 }

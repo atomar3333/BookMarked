@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -25,7 +26,13 @@ public class ListsController {
 
     @PostMapping
     public ResponseEntity<ListDto> createList(@RequestBody CreateListDto payload) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(listsService.createList(payload));
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(listsService.createList(payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/{listId}")
@@ -62,6 +69,8 @@ public class ListsController {
             @RequestBody UpdateListDto payload) {
         try {
             return ResponseEntity.ok(listsService.updateList(listId, payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -72,6 +81,8 @@ public class ListsController {
         try {
             listsService.deleteList(listId);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -83,6 +94,8 @@ public class ListsController {
             @PathVariable Long bookId) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(bookListService.addBookToList(listId, bookId));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             if (e.getMessage().contains("already in this list")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -98,6 +111,8 @@ public class ListsController {
         try {
             bookListService.removeBookFromList(listId, bookId);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

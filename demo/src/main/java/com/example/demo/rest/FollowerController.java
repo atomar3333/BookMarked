@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -24,6 +25,8 @@ public class FollowerController {
             @PathVariable Long followingId) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(followerService.follow(followerId, followingId));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Already following") || e.getMessage().contains("cannot follow themselves")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -40,6 +43,8 @@ public class FollowerController {
         try {
             followerService.unfollow(followerId, followingId);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

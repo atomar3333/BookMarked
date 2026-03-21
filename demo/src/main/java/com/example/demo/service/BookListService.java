@@ -4,13 +4,19 @@ import com.example.demo.dto.BookListDto;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.BookList;
 import com.example.demo.entity.Lists;
+import com.example.demo.entity.Role;
+import com.example.demo.entity.User;
 import com.example.demo.repository.BookListRepository;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.ListsRepository;
+import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,10 +26,13 @@ public class BookListService {
     private final BookListRepository bookListRepository;
     private final ListsRepository listsRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
     public BookListDto addBookToList(Long listId, Long bookId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+
+        assertListOwnerOrAdmin(list);
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with ID: " + bookId));
@@ -41,6 +50,10 @@ public class BookListService {
     }
 
     public void removeBookFromList(Long listId, Long bookId) {
+        Lists list = listsRepository.findById(listId)
+            .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+        assertListOwnerOrAdmin(list);
+
         BookList bookList = bookListRepository.findByListIdAndBookId(listId, bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found in this list"));
 
@@ -71,5 +84,23 @@ public class BookListService {
         dto.setBookId(bookList.getBook().getId());
         dto.setAddedAt(bookList.getAddedAt());
         return dto;
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertListOwnerOrAdmin(Lists list) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(list.getUser().getId())) {
+            throw new AccessDeniedException("You can only modify your own lists");
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.example.demo.dto.CreateListDto;
 import com.example.demo.dto.ListDto;
 import com.example.demo.dto.UpdateListDto;
 import com.example.demo.entity.Lists;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.repository.ListsRepository;
 import com.example.demo.repository.UserRepository;
@@ -11,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +25,12 @@ public class ListsService {
     private final UserRepository userRepository;
 
     public ListDto createList(CreateListDto request) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(request.getUserId())) {
+            throw new AccessDeniedException("You can only create lists for your own account");
+        }
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getUserId()));
 
@@ -62,6 +72,8 @@ public class ListsService {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
 
+        assertListOwnerOrAdmin(list);
+
         if (request.getTitle() != null && !request.getTitle().isBlank()) {
             if (request.getTitle().length() > 255) {
                 throw new RuntimeException("List title cannot exceed 255 characters");
@@ -77,9 +89,10 @@ public class ListsService {
     }
 
     public void deleteList(Long listId) {
-        if (!listsRepository.existsById(listId)) {
-            throw new RuntimeException("List not found with ID: " + listId);
-        }
+        Lists list = listsRepository.findById(listId)
+                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+
+        assertListOwnerOrAdmin(list);
         listsRepository.deleteById(listId);
     }
 
@@ -91,5 +104,23 @@ public class ListsService {
         dto.setDescription(list.getDescription());
         dto.setCreatedDate(list.getCreatedDate());
         return dto;
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertListOwnerOrAdmin(Lists list) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(list.getUser().getId())) {
+            throw new AccessDeniedException("You can only modify your own lists");
+        }
     }
 }

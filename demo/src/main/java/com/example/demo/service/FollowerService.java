@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.FollowerDto;
 import com.example.demo.entity.Follower;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.repository.FollowerRepository;
 import com.example.demo.repository.UserRepository;
@@ -9,6 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,6 +25,8 @@ public class FollowerService {
     private final UserRepository userRepository;
 
     public FollowerDto follow(Long followerId, Long followingId) {
+        assertSelfOrAdmin(followerId);
+
         if (followerId.equals(followingId)) {
             throw new RuntimeException("A user cannot follow themselves");
         }
@@ -42,6 +48,8 @@ public class FollowerService {
     }
 
     public void unfollow(Long followerId, Long followingId) {
+        assertSelfOrAdmin(followerId);
+
         Follower follow = followerRepository.findByFollowerIdAndFollowingId(followerId, followingId)
                 .orElseThrow(() -> new RuntimeException("Follow relationship not found"));
         followerRepository.delete(follow);
@@ -85,5 +93,23 @@ public class FollowerService {
         dto.setFollowerId(follow.getFollower().getId());
         dto.setFollowingId(follow.getFollowing().getId());
         return dto;
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertSelfOrAdmin(Long targetUserId) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(targetUserId)) {
+            throw new AccessDeniedException("You can only perform this action for your own account");
+        }
     }
 }
