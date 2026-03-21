@@ -24,6 +24,15 @@ export interface UserSearchItem {
   bio?: string
 }
 
+export interface ReviewItem {
+  id: number
+  userId: number
+  bookId: number
+  reviewText?: string
+  rating: number
+  createdAt?: string
+}
+
 export interface UnifiedSearchResult {
   books: BookSearchItem[]
   users: UserSearchItem[]

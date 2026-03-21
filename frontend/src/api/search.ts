@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import type {
   BookDetail,
   BookSearchItem,
+  ReviewItem,
   UnifiedSearchResult,
   UserSearchItem,
 } from '../types/search'
@@ -37,6 +38,16 @@ function asWarning(prefix: string, error: unknown): string {
 
 export async function getBookById(bookId: number): Promise<BookDetail> {
   const response = await apiClient.get<BookDetail>(`/api/books/${bookId}`)
+  return response.data
+}
+
+export async function getBookAverageRating(bookId: number): Promise<number> {
+  const response = await apiClient.get<number>(`/api/reviews/books/${bookId}/average-rating`)
+  return response.data
+}
+
+export async function getBookReviews(bookId: number): Promise<ReviewItem[]> {
+  const response = await apiClient.get<ReviewItem[]>(`/api/reviews/books/${bookId}`)
   return response.data
 }
 
