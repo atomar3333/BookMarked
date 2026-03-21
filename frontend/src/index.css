@@ -116,3 +116,48 @@ body {
   border-radius: 0.5rem;
   background: #fff;
 }
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1rem;
+}
+
+.books-tile-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.books-tile {
+  border: 1px solid #e9ecef;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.books-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.books-tile-image {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-top-left-radius: calc(0.375rem - 1px);
+  border-top-right-radius: calc(0.375rem - 1px);
+}
+
+.books-tile-placeholder {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.books-tile-title {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
