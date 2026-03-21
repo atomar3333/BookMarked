@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +19,13 @@ public class ReadingStatusController {
 
     @PostMapping
     public ResponseEntity<ReadingStatusDto> createReadingStatus(@RequestBody ReadingStatusDto payload) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(readingStatusService.createReadingStatus(payload));
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(readingStatusService.createReadingStatus(payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/{statusId}")
@@ -72,6 +79,8 @@ public class ReadingStatusController {
             @RequestBody ReadingStatusDto payload) {
         try {
             return ResponseEntity.ok(readingStatusService.updateReadingStatus(statusId, payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -82,6 +91,8 @@ public class ReadingStatusController {
         try {
             readingStatusService.deleteReadingStatus(statusId);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

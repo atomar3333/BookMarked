@@ -5,6 +5,7 @@ import com.example.demo.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +19,13 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ReviewDto> createReview(@RequestBody ReviewDto payload) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.createReview(payload));
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.createReview(payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/{reviewId}")
@@ -57,6 +64,8 @@ public class ReviewController {
     public ResponseEntity<ReviewDto> updateReview(@PathVariable Long reviewId, @RequestBody ReviewDto payload) {
         try {
             return ResponseEntity.ok(reviewService.updateReview(reviewId, payload));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -67,6 +76,8 @@ public class ReviewController {
         try {
             reviewService.deleteReview(reviewId);
             return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

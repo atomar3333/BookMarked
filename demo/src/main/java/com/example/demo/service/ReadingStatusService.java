@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,6 +27,8 @@ public class ReadingStatusService {
     private final BookRepository bookRepository;
 
     public ReadingStatusDto createReadingStatus(ReadingStatusDto request) {
+        assertSelfOrAdmin(request.getUserId());
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getUserId()));
         Book book = bookRepository.findById(request.getBookId())
@@ -98,6 +103,8 @@ public class ReadingStatusService {
         ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));
 
+        assertReadingStatusOwnerOrAdmin(readingStatus);
+
         if (request.getCurrentStatus() != null) {
             readingStatus.setCurrentStatus(request.getCurrentStatus());
         }
@@ -112,9 +119,10 @@ public class ReadingStatusService {
     }
 
     public void deleteReadingStatus(Long statusId) {
-        if (!readingStatusRepository.existsById(statusId)) {
-            throw new RuntimeException("Reading status not found with ID: " + statusId);
-        }
+        ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
+                .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));
+
+        assertReadingStatusOwnerOrAdmin(readingStatus);
         readingStatusRepository.deleteById(statusId);
     }
 
@@ -127,5 +135,31 @@ public class ReadingStatusService {
         dto.setStartedAt(readingStatus.getStartedAt());
         dto.setFinishedAt(readingStatus.getFinishedAt());
         return dto;
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertSelfOrAdmin(Long targetUserId) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(targetUserId)) {
+            throw new AccessDeniedException("You can only create reading statuses for your own account");
+        }
+    }
+
+    private void assertReadingStatusOwnerOrAdmin(ReadingStatus readingStatus) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(readingStatus.getUser().getId())) {
+            throw new AccessDeniedException("You can only modify your own reading statuses");
+        }
     }
 }

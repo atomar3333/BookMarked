@@ -2,17 +2,20 @@ package com.example.demo.service;
 
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.entity.Book;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.User;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +27,8 @@ public class ReviewService {
     private final BookRepository bookRepository;
 
     public ReviewDto createReview(ReviewDto request) {
+        assertSelfOrAdmin(request.getUserId());
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getUserId()));
         Book book = bookRepository.findById(request.getBookId())
@@ -71,6 +76,8 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
 
+        assertReviewOwnerOrAdmin(review);
+
         if (request.getReviewText() != null) {
             review.setReviewText(request.getReviewText());
         }
@@ -86,9 +93,10 @@ public class ReviewService {
     }
 
     public void deleteReview(Long reviewId) {
-        if (!reviewRepository.existsById(reviewId)) {
-            throw new RuntimeException("Review not found with ID: " + reviewId);
-        }
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+
+        assertReviewOwnerOrAdmin(review);
         reviewRepository.deleteById(reviewId);
     }
 
@@ -111,5 +119,31 @@ public class ReviewService {
         dto.setRating(review.getRating());
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
+    }
+
+    private User getCurrentUserOrThrow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByEmailId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private void assertSelfOrAdmin(Long targetUserId) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(targetUserId)) {
+            throw new AccessDeniedException("You can only create reviews for your own account");
+        }
+    }
+
+    private void assertReviewOwnerOrAdmin(Review review) {
+        User currentUser = getCurrentUserOrThrow();
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(review.getUser().getId())) {
+            throw new AccessDeniedException("You can only modify your own reviews");
+        }
     }
 }
