@@ -191,3 +191,13 @@ body {
 .lists-tile-description {
   min-height: 3rem;
 }
+
+.user-page-root {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.user-want-card {
+  border: 1px solid #dee2e6;
+  background: #fdfefe;
+}

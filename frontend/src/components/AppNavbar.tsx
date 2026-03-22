@@ -36,7 +36,7 @@ function AppNavbar() {
               Search
             </Nav.Link>
             <Nav.Link as={Link} to="/profile">
-              Protected Demo
+              My Page
             </Nav.Link>
           </Nav>
           <Nav className="ms-auto align-items-center gap-2">
