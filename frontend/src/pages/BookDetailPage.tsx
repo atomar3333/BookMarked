@@ -70,6 +70,8 @@ function buildDistribution(reviews: ReviewItem[]): RatingDistributionItem[] {
   })
 }
 
+const REVIEWS_PER_PAGE = 5
+
 function BookDetailPage() {
   const { bookId } = useParams()
   const [book, setBook] = useState<BookDetail | null>(null)
@@ -83,6 +85,7 @@ function BookDetailPage() {
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
   const [deletingReview, setDeletingReview] = useState(false)
+  const [reviewPage, setReviewPage] = useState(0)
   const [lists, setLists] = useState<ListItem[]>([])
   const [listError, setListError] = useState<string | null>(null)
   const [listSuccess, setListSuccess] = useState<string | null>(null)
@@ -200,6 +203,12 @@ function BookDetailPage() {
     ? reviews.find((review) => review.userId === currentUser.id)
     : undefined
 
+  const totalReviewPages = reviews.length === 0 ? 1 : Math.ceil(reviews.length / REVIEWS_PER_PAGE)
+  const pagedReviews = reviews.slice(
+    reviewPage * REVIEWS_PER_PAGE,
+    reviewPage * REVIEWS_PER_PAGE + REVIEWS_PER_PAGE,
+  )
+
   useEffect(() => {
     if (existingReview) {
       setReviewText(existingReview.reviewText ?? '')
@@ -210,6 +219,16 @@ function BookDetailPage() {
     setReviewText('')
     setSelectedRating(0)
   }, [existingReview?.id, existingReview?.reviewText, existingReview?.rating])
+
+  useEffect(() => {
+    setReviewPage((value) => {
+      if (reviews.length === 0) {
+        return 0
+      }
+      const lastPage = Math.max(0, Math.ceil(reviews.length / REVIEWS_PER_PAGE) - 1)
+      return Math.min(value, lastPage)
+    })
+  }, [reviews.length])
 
   if (loading) {
     return (
@@ -581,8 +600,9 @@ function BookDetailPage() {
                 No reviews yet for this book.
               </Alert>
             ) : (
-              <ListGroup variant="flush" className="book-review-list">
-                {reviews.map((review) => (
+              <>
+                <ListGroup variant="flush" className="book-review-list">
+                  {pagedReviews.map((review) => (
                   <ListGroup.Item key={review.id} className="px-0">
                     <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
                       <div className="d-flex align-items-center gap-2">
@@ -621,8 +641,35 @@ function BookDetailPage() {
                       </div>
                     )}
                   </ListGroup.Item>
-                ))}
-              </ListGroup>
+                  ))}
+                </ListGroup>
+
+                <div className="d-flex align-items-center justify-content-between mt-3">
+                  <Button
+                    type="button"
+                    variant="outline-secondary"
+                    size="sm"
+                    disabled={reviewPage <= 0}
+                    onClick={() => setReviewPage((value) => Math.max(0, value - 1))}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-muted small">
+                    Page {reviewPage + 1} of {totalReviewPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline-dark"
+                    size="sm"
+                    disabled={reviewPage >= totalReviewPages - 1}
+                    onClick={() =>
+                      setReviewPage((value) => Math.min(totalReviewPages - 1, value + 1))
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              </>
             )}
           </Col>
         </Row>

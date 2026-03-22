@@ -29,6 +29,8 @@ function formatReviewDate(value?: string): string {
   return parsed.toLocaleDateString()
 }
 
+const REVIEWS_PER_PAGE = 5
+
 function ProfilePage() {
   const navigate = useNavigate()
   const [user, setUser] = useState<UserProfileItem | null>(null)
@@ -37,6 +39,7 @@ function ProfilePage() {
   const [reviews, setReviews] = useState<UserReviewItem[]>([])
   const [booksById, setBooksById] = useState<Record<number, BookTileItem>>({})
   const [activeTab, setActiveTab] = useState('read-books')
+  const [reviewsPage, setReviewsPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -122,6 +125,22 @@ function ProfilePage() {
         .filter((book): book is BookTileItem => Boolean(book)),
     [booksById, readingStatuses],
   )
+
+  const totalReviewPages = reviews.length === 0 ? 1 : Math.ceil(reviews.length / REVIEWS_PER_PAGE)
+  const pagedReviews = reviews.slice(
+    reviewsPage * REVIEWS_PER_PAGE,
+    reviewsPage * REVIEWS_PER_PAGE + REVIEWS_PER_PAGE,
+  )
+
+  useEffect(() => {
+    setReviewsPage((value) => {
+      if (reviews.length === 0) {
+        return 0
+      }
+      const lastPage = Math.max(0, Math.ceil(reviews.length / REVIEWS_PER_PAGE) - 1)
+      return Math.min(value, lastPage)
+    })
+  }, [reviews.length])
 
   if (loading) {
     return (
@@ -229,31 +248,57 @@ function ProfilePage() {
               You have not added any reviews yet.
             </Alert>
           ) : (
-            <div className="d-grid gap-3 mt-3">
-              {reviews.map((review) => {
-                const book = booksById[review.bookId]
-                return (
-                  <Card key={review.id}>
-                    <Card.Body>
-                      <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                        {book ? (
-                          <Link to={`/books/${book.id}`} className="fw-semibold text-decoration-none">
-                            {book.title}
-                          </Link>
-                        ) : (
-                          <span className="fw-semibold">Book #{review.bookId}</span>
-                        )}
-                        <Badge bg="warning" text="dark">
-                          {review.rating}/5
-                        </Badge>
-                        <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
-                      </div>
-                      <p className="mb-0">{review.reviewText?.trim() || 'No review text provided.'}</p>
-                    </Card.Body>
-                  </Card>
-                )
-              })}
-            </div>
+            <>
+              <div className="d-grid gap-3 mt-3">
+                {pagedReviews.map((review) => {
+                  const book = booksById[review.bookId]
+                  return (
+                    <Card key={review.id}>
+                      <Card.Body>
+                        <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                          {book ? (
+                            <Link to={`/books/${book.id}`} className="fw-semibold text-decoration-none">
+                              {book.title}
+                            </Link>
+                          ) : (
+                            <span className="fw-semibold">Book #{review.bookId}</span>
+                          )}
+                          <Badge bg="warning" text="dark">
+                            {review.rating}/5
+                          </Badge>
+                          <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
+                        </div>
+                        <p className="mb-0">{review.reviewText?.trim() || 'No review text provided.'}</p>
+                      </Card.Body>
+                    </Card>
+                  )
+                })}
+              </div>
+
+              <div className="d-flex align-items-center justify-content-between mt-3">
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={reviewsPage <= 0}
+                  onClick={() => setReviewsPage((value) => Math.max(0, value - 1))}
+                >
+                  Previous
+                </Button>
+                <span className="text-muted small">
+                  Page {reviewsPage + 1} of {totalReviewPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline-dark"
+                  size="sm"
+                  disabled={reviewsPage >= totalReviewPages - 1}
+                  onClick={() => setReviewsPage((value) => Math.min(totalReviewPages - 1, value + 1))}
+                >
+                  Next
+                </Button>
+              </div>
+            </>
           )}
         </Tab>
       </Tabs>
