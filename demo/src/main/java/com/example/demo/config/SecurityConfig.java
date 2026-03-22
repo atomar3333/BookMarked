@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/users/all").hasAuthority("ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/users/search").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/users/search").authenticated()
                         // Admin-only: manage book catalog
                         .requestMatchers(HttpMethod.POST, "/api/books/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasAuthority("ROLE_ADMIN")
