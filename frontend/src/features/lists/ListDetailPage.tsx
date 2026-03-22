@@ -90,6 +90,11 @@ function ListDetailPage() {
         <h2 className="mb-1">{listTitle}</h2>
         <p className="text-muted mb-1">Created by User #{list.userId}</p>
         <p className="mb-0">{list.description || 'No description for this list.'}</p>
+        <div className="mt-3">
+          <Link to={`/lists/${list.id}/edit`} className="btn btn-outline-dark btn-sm">
+            Edit This List
+          </Link>
+        </div>
       </section>
 
       {entries.length === 0 ? (

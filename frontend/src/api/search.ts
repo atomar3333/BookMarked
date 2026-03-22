@@ -10,7 +10,7 @@ import type {
   UserSearchItem,
 } from '../types/search'
 
-async function searchBooksByTitle(query: string): Promise<BookSearchItem[]> {
+export async function searchBooksByTitle(query: string): Promise<BookSearchItem[]> {
   const response = await apiClient.get<BookSearchItem[]>('/api/books/search/title', {
     params: { title: query },
   })

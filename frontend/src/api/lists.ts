@@ -2,6 +2,11 @@ import axios from 'axios'
 import { apiClient } from './client'
 import type { CreateListRequest, ListItem, PageResponse } from '../types/search'
 
+interface UpdateListRequest {
+  title: string
+  description: string
+}
+
 function normalizeListError(error: unknown): Error {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status
@@ -46,6 +51,23 @@ export async function createList(payload: CreateListRequest): Promise<ListItem> 
 export async function addBookToList(listId: number, bookId: number): Promise<void> {
   try {
     await apiClient.post(`/api/lists/${listId}/books/${bookId}`)
+  } catch (error) {
+    throw normalizeListError(error)
+  }
+}
+
+export async function removeBookFromList(listId: number, bookId: number): Promise<void> {
+  try {
+    await apiClient.delete(`/api/lists/${listId}/books/${bookId}`)
+  } catch (error) {
+    throw normalizeListError(error)
+  }
+}
+
+export async function updateList(listId: number, payload: UpdateListRequest): Promise<ListItem> {
+  try {
+    const response = await apiClient.put<ListItem>(`/api/lists/${listId}`, payload)
+    return response.data
   } catch (error) {
     throw normalizeListError(error)
   }

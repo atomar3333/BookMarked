@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import LoginPage from '../features/auth/LoginPage'
 import BooksPage from '../features/books/BooksPage'
+import CreateListPage from '../features/lists/CreateListPage'
+import EditListPage from '../features/lists/EditListPage'
 import ListDetailPage from '../features/lists/ListDetailPage'
 import ListsPage from '../features/lists/ListsPage'
 import RegisterPage from '../features/auth/RegisterPage'
@@ -26,6 +28,8 @@ function AppRoutes() {
         <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />
+        <Route path="/lists/create" element={<CreateListPage />} />
+        <Route path="/lists/:listId/edit" element={<EditListPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

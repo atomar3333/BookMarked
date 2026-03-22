@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import Spinner from 'react-bootstrap/Spinner'
+import { Link } from 'react-router-dom'
 import { getListsPage } from '../../api/listsBrowse'
 import type { ListTileItem } from '../../types/lists'
 import ListGrid from './ListGrid'
@@ -38,8 +39,15 @@ function ListsPage() {
   return (
     <div>
       <section className="mb-4">
-        <h2 className="mb-1">Browse Lists</h2>
-        <p className="text-muted mb-0">Explore user-created lists in a modular catalog layout.</p>
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h2 className="mb-1">Browse Lists</h2>
+            <p className="text-muted mb-0">Explore user-created lists in a modular catalog layout.</p>
+          </div>
+          <Link to="/lists/create" className="btn btn-dark">
+            Create Your List
+          </Link>
+        </div>
       </section>
 
       <ListsFilters />
