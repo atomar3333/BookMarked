@@ -4,9 +4,10 @@ import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   addBookToList,
+  deleteList,
   removeBookFromList,
   updateList,
 } from '../../api/lists'
@@ -18,6 +19,7 @@ import SelectedBooksBox from './components/SelectedBooksBox'
 
 function EditListPage() {
   const { listId } = useParams()
+  const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -28,6 +30,7 @@ function EditListPage() {
   const [searching, setSearching] = useState(false)
   const [savingDetails, setSavingDetails] = useState(false)
   const [updatingBooks, setUpdatingBooks] = useState(false)
+  const [deletingList, setDeletingList] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [searchError, setSearchError] = useState<string | null>(null)
@@ -194,6 +197,36 @@ function EditListPage() {
     }
   }
 
+  const handleDeleteList = async () => {
+    const parsedId = Number(listId)
+    if (!parsedId || Number.isNaN(parsedId)) {
+      setError('Invalid list id.')
+      return
+    }
+
+    const shouldDelete = window.confirm(
+      'Delete this list? This will remove the list and its book associations.',
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    setError(null)
+    setSuccess(null)
+    setDeletingList(true)
+
+    try {
+      await deleteList(parsedId)
+      navigate('/lists')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to delete list.'
+      setError(message)
+    } finally {
+      setDeletingList(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="d-flex align-items-center gap-2">
@@ -244,8 +277,20 @@ function EditListPage() {
               />
             </Form.Group>
 
-            <div className="mt-3 d-flex justify-content-end">
-              <Button type="submit" variant="dark" disabled={savingDetails || updatingBooks}>
+            <div className="mt-3 d-flex justify-content-between gap-2">
+              <Button
+                type="button"
+                variant="outline-danger"
+                disabled={savingDetails || updatingBooks || deletingList}
+                onClick={handleDeleteList}
+              >
+                {deletingList ? 'Deleting...' : 'Delete List'}
+              </Button>
+              <Button
+                type="submit"
+                variant="dark"
+                disabled={savingDetails || updatingBooks || deletingList}
+              >
                 {savingDetails ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>

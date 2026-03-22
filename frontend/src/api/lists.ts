@@ -72,3 +72,11 @@ export async function updateList(listId: number, payload: UpdateListRequest): Pr
     throw normalizeListError(error)
   }
 }
+
+export async function deleteList(listId: number): Promise<void> {
+  try {
+    await apiClient.delete(`/api/lists/${listId}`)
+  } catch (error) {
+    throw normalizeListError(error)
+  }
+}
