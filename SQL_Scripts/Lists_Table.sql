@@ -1,8 +1,0 @@
-CREATE TABLE lists (
-  id BIGINT PRIMARY KEY auto_increment,
-  user_id BIGINT NOT NULL,
-  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-);
