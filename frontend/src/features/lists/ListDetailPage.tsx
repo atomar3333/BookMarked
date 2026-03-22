@@ -98,33 +98,38 @@ function ListDetailPage() {
         <Row xs={1} md={2} lg={3} className="g-3">
           {entries.map((entry) => {
             const book = booksById[entry.bookId]
+
+            const cardContent = (
+              <Card className="h-100">
+                {book?.coverImageUrl ? (
+                  <img
+                    src={book.coverImageUrl}
+                    alt={`${book.title} cover`}
+                    className="books-tile-image"
+                  />
+                ) : (
+                  <div className="books-tile-placeholder">No Cover</div>
+                )}
+                <Card.Body>
+                  <Card.Title className="books-tile-title">
+                    {book ? book.title : `Book #${entry.bookId}`}
+                  </Card.Title>
+                  <Card.Text className="text-muted mb-0">
+                    {book?.author || 'Author unavailable'}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            )
+
             return (
               <Col key={entry.id}>
-                <Card className="h-100">
-                  {book?.coverImageUrl ? (
-                    <img
-                      src={book.coverImageUrl}
-                      alt={`${book.title} cover`}
-                      className="books-tile-image"
-                    />
-                  ) : (
-                    <div className="books-tile-placeholder">No Cover</div>
-                  )}
-                  <Card.Body>
-                    <Card.Title className="books-tile-title">
-                      {book ? (
-                        <Link to={`/books/${book.id}`} className="books-tile-link">
-                          {book.title}
-                        </Link>
-                      ) : (
-                        `Book #${entry.bookId}`
-                      )}
-                    </Card.Title>
-                    <Card.Text className="text-muted mb-0">
-                      {book?.author || 'Author unavailable'}
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
+                {book ? (
+                  <Link to={`/books/${book.id}`} className="books-tile-link h-100 d-block">
+                    {cardContent}
+                  </Link>
+                ) : (
+                  cardContent
+                )}
               </Col>
             )
           })}
