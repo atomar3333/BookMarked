@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import Badge from 'react-bootstrap/Badge'
+import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Spinner from 'react-bootstrap/Spinner'
 import Tab from 'react-bootstrap/Tab'
 import Tabs from 'react-bootstrap/Tabs'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getListsByUser } from '../api/lists'
 import { getBookById, getCurrentUser } from '../api/search'
 import { getReadingStatusesByUser, getReviewsByUser } from '../api/userPage'
@@ -29,6 +30,7 @@ function formatReviewDate(value?: string): string {
 }
 
 function ProfilePage() {
+  const navigate = useNavigate()
   const [user, setUser] = useState<UserProfileItem | null>(null)
   const [readingStatuses, setReadingStatuses] = useState<ReadingStatusItem[]>([])
   const [lists, setLists] = useState<ListItem[]>([])
@@ -137,7 +139,16 @@ function ProfilePage() {
   return (
     <div className="user-page-root">
       <section className="mb-4">
-        <h2 className="mb-1">{user?.userName ?? 'User Page'}</h2>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h2 className="mb-0">{user?.userName ?? 'User Page'}</h2>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => navigate('/profile/edit')}
+          >
+            Edit Profile
+          </Button>
+        </div>
         <p className="text-muted mb-0">Track what you read, save what you want next, and revisit your reviews.</p>
       </section>
 
