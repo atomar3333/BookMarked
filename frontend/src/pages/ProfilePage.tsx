@@ -112,6 +112,15 @@ function ProfilePage() {
     [booksById, readingStatuses],
   )
 
+  const currentlyReadingBooks = useMemo(
+    () =>
+      readingStatuses
+        .filter((item) => item.currentStatus === 'CURRENTLY_READING')
+        .map((item) => booksById[item.bookId])
+        .filter((book): book is BookTileItem => Boolean(book)),
+    [booksById, readingStatuses],
+  )
+
   if (loading) {
     return (
       <div className="d-flex align-items-center gap-2">
@@ -150,8 +159,10 @@ function ProfilePage() {
               ))}
             </div>
           )}
+        </Tab>
 
-          <Card className="mt-4 user-want-card">
+        <Tab eventKey="want-to-read" title={`Want To Read (${wantToReadBooks.length})`}>
+          <Card className="mt-3 user-want-card">
             <Card.Body>
               <Card.Title className="d-flex align-items-center justify-content-between">
                 <span>Want To Read</span>
@@ -171,6 +182,20 @@ function ProfilePage() {
               )}
             </Card.Body>
           </Card>
+        </Tab>
+
+        <Tab eventKey="reading" title={`Reading (${currentlyReadingBooks.length})`}>
+          {currentlyReadingBooks.length === 0 ? (
+            <Alert variant="light" className="mt-3">
+              No books with CURRENTLY_READING status yet.
+            </Alert>
+          ) : (
+            <div className="books-grid mt-3">
+              {currentlyReadingBooks.map((book) => (
+                <BookTile key={book.id} book={book} />
+              ))}
+            </div>
+          )}
         </Tab>
 
         <Tab eventKey="lists" title={`Lists (${lists.length})`}>
