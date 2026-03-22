@@ -1,13 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import Badge from 'react-bootstrap/Badge'
+import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Spinner from 'react-bootstrap/Spinner'
 import Tab from 'react-bootstrap/Tab'
 import Tabs from 'react-bootstrap/Tabs'
 import { Link, useParams } from 'react-router-dom'
+import {
+  followUser,
+  getFollowerCount,
+  getFollowingCount,
+  getIsFollowing,
+  unfollowUser,
+} from '../api/followers'
 import { getListsByUser } from '../api/lists'
-import { getBookById, getUserById } from '../api/search'
+import { getBookById, getCurrentUser, getUserById } from '../api/search'
 import { getReadingStatusesByUser, getReviewsByUser } from '../api/userPage'
 import BookTile from '../features/books/BookTile'
 import ListTile from '../features/lists/ListTile'
@@ -31,11 +39,17 @@ function formatReviewDate(value?: string): string {
 function UserPage() {
   const { userId } = useParams()
 
+  const [currentUser, setCurrentUser] = useState<UserProfileItem | null>(null)
   const [user, setUser] = useState<UserProfileItem | null>(null)
   const [readingStatuses, setReadingStatuses] = useState<ReadingStatusItem[]>([])
   const [lists, setLists] = useState<ListItem[]>([])
   const [reviews, setReviews] = useState<UserReviewItem[]>([])
   const [booksById, setBooksById] = useState<Record<number, BookTileItem>>({})
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
+  const [savingFollow, setSavingFollow] = useState(false)
+  const [followError, setFollowError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('read-books')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -51,13 +65,25 @@ function UserPage() {
     const loadUserData = async () => {
       setLoading(true)
       setError(null)
+      setFollowError(null)
 
       try {
-        const [userResult, statusesResult, listsResult, reviewsResult] = await Promise.allSettled([
+        const [
+          currentUserResult,
+          userResult,
+          statusesResult,
+          listsResult,
+          reviewsResult,
+          followerCountResult,
+          followingCountResult,
+        ] = await Promise.allSettled([
+          getCurrentUser(),
           getUserById(parsedUserId),
           getReadingStatusesByUser(parsedUserId),
           getListsByUser(parsedUserId),
           getReviewsByUser(parsedUserId),
+          getFollowerCount(parsedUserId),
+          getFollowingCount(parsedUserId),
         ])
 
         if (userResult.status === 'rejected') {
@@ -67,11 +93,26 @@ function UserPage() {
         const nextStatuses = statusesResult.status === 'fulfilled' ? statusesResult.value : []
         const nextLists = listsResult.status === 'fulfilled' ? listsResult.value.content : []
         const nextReviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value : []
+        const viewer = currentUserResult.status === 'fulfilled' ? currentUserResult.value : null
 
+        setCurrentUser(viewer)
         setUser(userResult.value)
         setReadingStatuses(nextStatuses)
         setLists(nextLists)
         setReviews(nextReviews)
+        setFollowerCount(followerCountResult.status === 'fulfilled' ? followerCountResult.value : 0)
+        setFollowingCount(followingCountResult.status === 'fulfilled' ? followingCountResult.value : 0)
+
+        if (viewer && viewer.id !== parsedUserId) {
+          try {
+            const nextIsFollowing = await getIsFollowing(viewer.id, parsedUserId)
+            setIsFollowing(nextIsFollowing)
+          } catch {
+            setIsFollowing(false)
+          }
+        } else {
+          setIsFollowing(false)
+        }
 
         const statusBookIds = nextStatuses.map((item) => item.bookId)
         const reviewBookIds = nextReviews.map((item) => item.bookId)
@@ -124,6 +165,35 @@ function UserPage() {
     [booksById, readingStatuses],
   )
 
+  const canFollow = Boolean(currentUser && user && currentUser.id !== user.id)
+
+  const handleFollowToggle = async () => {
+    if (!currentUser || !user) {
+      return
+    }
+
+    const previousFollowing = isFollowing
+    setFollowError(null)
+    setSavingFollow(true)
+    setIsFollowing(!previousFollowing)
+    setFollowerCount((value) => Math.max(0, value + (previousFollowing ? -1 : 1)))
+
+    try {
+      if (previousFollowing) {
+        await unfollowUser(currentUser.id, user.id)
+      } else {
+        await followUser(currentUser.id, user.id)
+      }
+    } catch (err) {
+      setIsFollowing(previousFollowing)
+      setFollowerCount((value) => Math.max(0, value + (previousFollowing ? 1 : -1)))
+      const message = err instanceof Error ? err.message : 'Unable to update follow status.'
+      setFollowError(message)
+    } finally {
+      setSavingFollow(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="d-flex align-items-center gap-2">
@@ -144,8 +214,33 @@ function UserPage() {
   return (
     <div className="user-page-root">
       <section className="mb-4">
-        <h2 className="mb-1">{user.userName}</h2>
-        {user.bio && <p className="text-muted mb-1">{user.bio}</p>}
+        <div className="d-flex flex-wrap align-items-start justify-content-between gap-3">
+          <div>
+            <h2 className="mb-1">{user.userName}</h2>
+            <div className="d-flex flex-wrap align-items-center gap-3 text-muted small mb-2">
+              <span>{followerCount} follower{followerCount === 1 ? '' : 's'}</span>
+              <span>{followingCount} following</span>
+            </div>
+            {user.bio && <p className="text-muted mb-1">{user.bio}</p>}
+          </div>
+
+          {canFollow && (
+            <Button
+              type="button"
+              variant={isFollowing ? 'outline-dark' : 'dark'}
+              disabled={savingFollow}
+              onClick={handleFollowToggle}
+            >
+              {savingFollow ? 'Saving...' : isFollowing ? 'Unfollow' : 'Follow'}
+            </Button>
+          )}
+        </div>
+
+        {followError && (
+          <Alert variant="danger" className="mt-3 mb-0">
+            {followError}
+          </Alert>
+        )}
       </section>
 
       <Tabs
