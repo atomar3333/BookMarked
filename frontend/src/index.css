@@ -161,3 +161,33 @@ body {
   font-size: 1rem;
   margin-bottom: 0.25rem;
 }
+
+.lists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.lists-tile-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.lists-tile {
+  border: 1px solid #e9ecef;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lists-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.lists-tile-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+}
+
+.lists-tile-description {
+  min-height: 3rem;
+}
