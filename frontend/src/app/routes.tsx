@@ -9,6 +9,7 @@ import UnifiedSearchPage from '../features/search/UnifiedSearchPage'
 import BookDetailPage from '../pages/BookDetailPage'
 import HomePage from '../pages/HomePage'
 import ProfilePage from '../pages/ProfilePage'
+import UserPage from '../pages/UserPage'
 
 function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />
       </Route>

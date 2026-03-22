@@ -126,12 +126,14 @@ function UnifiedSearchPage() {
           <Row xs={1} md={2} className="g-3">
             {results.users.map((user) => (
               <Col key={user.id}>
-                <Card className="h-100">
-                  <Card.Body>
-                    <Card.Title>{user.userName}</Card.Title>
-                    {user.bio && <Card.Text>{user.bio}</Card.Text>}
-                  </Card.Body>
-                </Card>
+                <Link to={`/users/${user.id}`} className="book-result-link">
+                  <Card className="h-100 book-result-card">
+                    <Card.Body>
+                      <Card.Title>{user.userName}</Card.Title>
+                      {user.bio && <Card.Text>{user.bio}</Card.Text>}
+                    </Card.Body>
+                  </Card>
+                </Link>
               </Col>
             ))}
           </Row>
