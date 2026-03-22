@@ -4,7 +4,6 @@ import type {
   BookSearchItem,
   CreateReviewRequest,
   ListItem,
-  PageResponse,
   ReviewItem,
   UnifiedSearchResult,
   UserProfileItem,
@@ -26,31 +25,10 @@ async function searchUsersByUserName(query: string): Promise<UserSearchItem[]> {
 }
 
 async function searchListsByQuery(query: string): Promise<ListItem[]> {
-  const normalized = query.trim().toLowerCase()
-  const pageSize = 100
-  const maxPages = 5
-  let page = 0
-  const matches: ListItem[] = []
-
-  while (page < maxPages) {
-    const response = await apiClient.get<PageResponse<ListItem>>('/api/lists/all', {
-      params: { page, size: pageSize },
-    })
-
-    const filtered = response.data.content.filter((item) => {
-      const title = item.title?.toLowerCase() ?? ''
-      const description = item.description?.toLowerCase() ?? ''
-      return title.includes(normalized) || description.includes(normalized)
-    })
-    matches.push(...filtered)
-
-    page += 1
-    if (page >= response.data.totalPages) {
-      break
-    }
-  }
-
-  return dedupeById(matches)
+  const response = await apiClient.get<ListItem[]>('/api/lists/search', {
+    params: { query },
+  })
+  return dedupeById(response.data)
 }
 
 function dedupeById<T extends { id: number }>(items: T[]): T[] {

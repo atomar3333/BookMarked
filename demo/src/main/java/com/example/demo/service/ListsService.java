@@ -17,6 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ListsService {
@@ -66,6 +69,18 @@ public class ListsService {
         }
         Pageable pageable = PageRequest.of(page, size);
         return listsRepository.findByUserId(userId, pageable).map(this::mapToDto);
+    }
+
+    public List<ListDto> searchLists(String query) {
+        if (query == null || query.isBlank()) {
+            throw new RuntimeException("Search query cannot be empty");
+        }
+
+        return listsRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
     public ListDto updateList(Long listId, UpdateListDto request) {

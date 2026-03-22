@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -49,6 +50,15 @@ public class ListsController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(listsService.getAllLists(page, size));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ListDto>> searchLists(@RequestParam String query) {
+        try {
+            return ResponseEntity.ok(listsService.searchLists(query));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/users/{userId}")
