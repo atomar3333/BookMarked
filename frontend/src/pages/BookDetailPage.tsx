@@ -11,6 +11,7 @@ import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
 import { useParams } from 'react-router-dom'
 import { addBookToList, createList, getListsByUser } from '../api/lists'
+import { getReadingStatusForUserBook, upsertReadingStatus } from '../api/readingStatus'
 import {
   createReview,
   getBookAverageRating,
@@ -20,6 +21,8 @@ import {
   getUserById,
 } from '../api/search'
 import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types/search'
+import type { ReadingStatusValue } from '../types/userPage'
+import ReadingStatusActions from '../components/ReadingStatusActions'
 
 interface RatingDistributionItem {
   stars: number
@@ -89,6 +92,8 @@ function BookDetailPage() {
   const [reloadToken, setReloadToken] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentStatus, setCurrentStatus] = useState<ReadingStatusValue | undefined>(undefined)
+  const [savingStatus, setSavingStatus] = useState(false)
 
   useEffect(() => {
     const parsedId = Number(bookId)
@@ -138,6 +143,9 @@ function BookDetailPage() {
           } finally {
             setListLoading(false)
           }
+
+          const existingStatus = await getReadingStatusForUserBook(user.id, parsedId)
+          setCurrentStatus(existingStatus?.currentStatus)
         } else {
           setCurrentUser(null)
         }
@@ -249,6 +257,20 @@ function BookDetailPage() {
 
   const parsedBookId = Number(bookId)
 
+  const handleSetStatus = async (status: ReadingStatusValue) => {
+    if (!currentUser) return
+    const previous = currentStatus
+    setCurrentStatus(status)
+    setSavingStatus(true)
+    try {
+      await upsertReadingStatus({ userId: currentUser.id, bookId: parsedBookId, currentStatus: status })
+    } catch {
+      setCurrentStatus(previous)
+    } finally {
+      setSavingStatus(false)
+    }
+  }
+
   const handleAddToExistingList = async (listId: number) => {
     setListError(null)
     setListSuccess(null)
@@ -334,6 +356,17 @@ function BookDetailPage() {
           <Col md={8}>
             <h2 className="mb-1">{book.title}</h2>
             <p className="text-muted mb-3">by {book.author}</p>
+
+            {currentUser && (
+              <div className="mb-3">
+                <ReadingStatusActions
+                  currentStatus={currentStatus}
+                  isSaving={savingStatus}
+                  onSetStatus={handleSetStatus}
+                />
+              </div>
+            )}
+
 
             {ratingWarning && (
               <Alert variant="warning" className="py-2 mb-3">

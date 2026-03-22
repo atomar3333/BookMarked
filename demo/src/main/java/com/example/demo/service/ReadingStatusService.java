@@ -38,30 +38,14 @@ public class ReadingStatusService {
             throw new RuntimeException("Reading status cannot be null");
         }
 
-        ReadingStatus readingStatus = new ReadingStatus();
+        ReadingStatus readingStatus = readingStatusRepository
+                .findByUserIdAndBookId(request.getUserId(), request.getBookId())
+                .orElseGet(ReadingStatus::new);
+
         readingStatus.setUser(user);
         readingStatus.setBook(book);
-        readingStatus.setCurrentStatus(request.getCurrentStatus());
 
-        switch (request.getCurrentStatus()) {
-            case WANT_TO_READ:
-                readingStatus.setStartedAt(null);
-                readingStatus.setFinishedAt(null);
-                break;
-
-            case CURRENTLY_READING:
-                readingStatus.setStartedAt(request.getStartedAt() != null
-                        ? request.getStartedAt() : LocalDate.now());
-                readingStatus.setFinishedAt(null);
-                break;
-
-            case READ:
-                readingStatus.setStartedAt(request.getStartedAt());
-                readingStatus.setFinishedAt(request.getFinishedAt() != null
-                        ? request.getFinishedAt() : LocalDate.now());
-                break;
-
-        }
+        applyStatusRules(readingStatus, request.getCurrentStatus(), request.getStartedAt(), request.getFinishedAt());
 
         return mapToDto(readingStatusRepository.save(readingStatus));
     }
@@ -98,22 +82,30 @@ public class ReadingStatusService {
         return mapToDto(status);
     }
 
-    //pending update bugs for state changes
+    //pending update option for changing start and finish date
     public ReadingStatusDto updateReadingStatus(Long statusId, ReadingStatusDto request) {
         ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));
 
         assertReadingStatusOwnerOrAdmin(readingStatus);
 
-        if (request.getCurrentStatus() != null) {
-            readingStatus.setCurrentStatus(request.getCurrentStatus());
+        if (request == null) {
+            throw new RuntimeException("Update payload cannot be null");
         }
-        if (request.getStartedAt() != null) {
-            readingStatus.setStartedAt(request.getStartedAt());
-        }
-        if (request.getFinishedAt() != null) {
-            readingStatus.setFinishedAt(request.getFinishedAt());
-        }
+
+        ReadingStatusEnum targetStatus = request.getCurrentStatus() != null
+                ? request.getCurrentStatus()
+                : readingStatus.getCurrentStatus();
+
+        LocalDate nextStartedAt = request.getStartedAt() != null
+                ? request.getStartedAt()
+                : readingStatus.getStartedAt();
+
+        LocalDate nextFinishedAt = request.getFinishedAt() != null
+                ? request.getFinishedAt()
+                : readingStatus.getFinishedAt();
+
+        applyStatusRules(readingStatus, targetStatus, nextStartedAt, nextFinishedAt);
 
         return mapToDto(readingStatusRepository.save(readingStatus));
     }
@@ -135,6 +127,46 @@ public class ReadingStatusService {
         dto.setStartedAt(readingStatus.getStartedAt());
         dto.setFinishedAt(readingStatus.getFinishedAt());
         return dto;
+    }
+
+    private void applyStatusRules(
+            ReadingStatus readingStatus,
+            ReadingStatusEnum targetStatus,
+            LocalDate candidateStartedAt,
+            LocalDate candidateFinishedAt
+    ) {
+        LocalDate nextStartedAt = candidateStartedAt;
+        LocalDate nextFinishedAt = candidateFinishedAt;
+
+        switch (targetStatus) {
+            case WANT_TO_READ:
+                nextStartedAt = null;
+                nextFinishedAt = null;
+                break;
+
+            case CURRENTLY_READING:
+                if (nextStartedAt == null) {
+                    nextStartedAt = LocalDate.now();
+                }
+                nextFinishedAt = null;
+                break;
+
+            case READ:
+                if (nextStartedAt == null) {
+                    nextStartedAt = LocalDate.now();
+                }
+                if (nextFinishedAt == null) {
+                    nextFinishedAt = LocalDate.now();
+                }
+                if (nextFinishedAt.isBefore(nextStartedAt)) {
+                    throw new RuntimeException("Finish date cannot be before start date");
+                }
+                break;
+        }
+
+        readingStatus.setCurrentStatus(targetStatus);
+        readingStatus.setStartedAt(nextStartedAt);
+        readingStatus.setFinishedAt(nextFinishedAt);
     }
 
     private User getCurrentUserOrThrow() {

@@ -1,26 +1,50 @@
 import Card from 'react-bootstrap/Card'
 import { Link } from 'react-router-dom'
 import type { BookTileItem } from '../../types/books'
+import type { ReadingStatusValue } from '../../types/userPage'
+import ReadingStatusActions from '../../components/ReadingStatusActions'
 
 interface BookTileProps {
   book: BookTileItem
+  showStatusActions?: boolean
+  currentStatus?: ReadingStatusValue
+  isSavingStatus?: boolean
+  onSetStatus?: (bookId: number, status: ReadingStatusValue) => void
 }
 
-function BookTile({ book }: BookTileProps) {
+function BookTile({
+  book,
+  showStatusActions,
+  currentStatus,
+  isSavingStatus,
+  onSetStatus,
+}: BookTileProps) {
   return (
-    <Link to={`/books/${book.id}`} className="books-tile-link">
-      <Card className="books-tile h-100">
+    <Card className="books-tile h-100">
+      <Link to={`/books/${book.id}`} className="books-tile-link">
         {book.coverImageUrl ? (
           <img src={book.coverImageUrl} alt={`${book.title} cover`} className="books-tile-image" />
         ) : (
           <div className="books-tile-placeholder">No Cover</div>
         )}
-        <Card.Body>
-          <Card.Title className="books-tile-title">{book.title}</Card.Title>
-          <Card.Text className="text-muted mb-0">{book.author}</Card.Text>
-        </Card.Body>
-      </Card>
-    </Link>
+      </Link>
+      <Card.Body>
+        <Card.Title className="books-tile-title">
+          <Link to={`/books/${book.id}`} className="books-tile-link">
+            {book.title}
+          </Link>
+        </Card.Title>
+        <Card.Text className="text-muted mb-3">{book.author}</Card.Text>
+
+        {showStatusActions && onSetStatus && (
+          <ReadingStatusActions
+            currentStatus={currentStatus}
+            isSaving={isSavingStatus}
+            onSetStatus={(status) => onSetStatus(book.id, status)}
+          />
+        )}
+      </Card.Body>
+    </Card>
   )
 }
 

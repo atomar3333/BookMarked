@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import Spinner from 'react-bootstrap/Spinner'
 import { getBooksPage } from '../../api/books'
+import { getCurrentUserReadingStatuses, upsertReadingStatus } from '../../api/readingStatus'
+import { getCurrentUser } from '../../api/search'
 import type { BookTileItem } from '../../types/books'
+import type { ReadingStatusValue } from '../../types/userPage'
 import BookGrid from './BookGrid'
 import BooksFilters from './BooksFilters'
 import BooksPaginator from './BooksPaginator'
@@ -15,6 +18,30 @@ function BooksPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+  const [statusByBookId, setStatusByBookId] = useState<Record<number, ReadingStatusValue>>({})
+  const [savingByBookId, setSavingByBookId] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    const loadCurrentUserAndStatuses = async () => {
+      try {
+        const me = await getCurrentUser()
+        setCurrentUserId(me.id)
+
+        const statuses = await getCurrentUserReadingStatuses(me.id)
+        const nextMap: Record<number, ReadingStatusValue> = {}
+        statuses.forEach((item) => {
+          nextMap[item.bookId] = item.currentStatus
+        })
+        setStatusByBookId(nextMap)
+      } catch {
+        setCurrentUserId(null)
+        setStatusByBookId({})
+      }
+    }
+
+    loadCurrentUserAndStatuses()
+  }, [])
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -34,6 +61,35 @@ function BooksPage() {
 
     loadBooks()
   }, [page])
+
+  const handleSetStatus = async (bookId: number, status: ReadingStatusValue) => {
+    if (!currentUserId) {
+      return
+    }
+
+    const previous = statusByBookId[bookId]
+
+    setSavingByBookId((existing) => ({ ...existing, [bookId]: true }))
+    setStatusByBookId((existing) => ({ ...existing, [bookId]: status }))
+
+    try {
+      await upsertReadingStatus({
+        userId: currentUserId,
+        bookId,
+        currentStatus: status,
+      })
+    } catch {
+      setStatusByBookId((existing) => {
+        if (previous === undefined) {
+          const { [bookId]: _removed, ...rest } = existing
+          return rest
+        }
+        return { ...existing, [bookId]: previous }
+      })
+    } finally {
+      setSavingByBookId((existing) => ({ ...existing, [bookId]: false }))
+    }
+  }
 
   return (
     <div>
@@ -59,7 +115,13 @@ function BooksPage() {
 
       {!loading && !error && books.length > 0 && (
         <>
-          <BookGrid books={books} />
+          <BookGrid
+            books={books}
+            showStatusActions={Boolean(currentUserId)}
+            statusByBookId={statusByBookId}
+            savingByBookId={savingByBookId}
+            onSetStatus={handleSetStatus}
+          />
           <BooksPaginator
             page={page}
             totalPages={totalPages}
