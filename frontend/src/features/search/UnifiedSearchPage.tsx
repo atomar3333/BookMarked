@@ -16,6 +16,7 @@ const SEARCH_DEBOUNCE_MS = 300
 const initialResult: UnifiedSearchResult = {
   books: [],
   users: [],
+  lists: [],
   warnings: [],
 }
 
@@ -44,8 +45,8 @@ function UnifiedSearchPage() {
   }, [query])
 
   const totalMatches = useMemo(
-    () => results.books.length + results.users.length,
-    [results.books.length, results.users.length],
+    () => results.books.length + results.users.length + results.lists.length,
+    [results.books.length, results.users.length, results.lists.length],
   )
 
   return (
@@ -54,11 +55,12 @@ function UnifiedSearchPage() {
         <Card.Body>
           <Card.Title>Unified Search</Card.Title>
           <Card.Text className="text-muted mb-3">
-            Search books by title and users by username in a single query.
+            Search books by title, users by username, and lists by title/description in a
+            single query.
           </Card.Text>
           <Form.Control
             type="search"
-            placeholder="Search books and users"
+            placeholder="Search books, users, and lists"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -136,8 +138,39 @@ function UnifiedSearchPage() {
         </section>
       )}
 
+      {results.lists.length > 0 && (
+        <section className="mb-4">
+          <h5 className="mb-3">
+            Lists <Badge bg="secondary">{results.lists.length}</Badge>
+          </h5>
+          <Row xs={1} md={2} className="g-3">
+            {results.lists.map((list) => (
+              <Col key={list.id}>
+                <Link to={`/lists/${list.id}`} className="book-result-link">
+                  <Card className="h-100 book-result-card">
+                    <Card.Body>
+                      <Card.Title>{list.title}</Card.Title>
+                      <Card.Subtitle className="mb-2 text-muted">
+                        User #{list.userId}
+                      </Card.Subtitle>
+                      {list.description && (
+                        <Card.Text>
+                          {list.description.length > 180
+                            ? `${list.description.slice(0, 180)}...`
+                            : list.description}
+                        </Card.Text>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Link>
+              </Col>
+            ))}
+          </Row>
+        </section>
+      )}
+
       {query.trim().length >= MIN_QUERY_LENGTH && !loading && totalMatches === 0 && (
-        <Alert variant="light">No matches found in books or users.</Alert>
+        <Alert variant="light">No matches found in books, users, or lists.</Alert>
       )}
     </div>
   )

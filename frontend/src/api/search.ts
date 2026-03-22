@@ -3,6 +3,8 @@ import type {
   BookDetail,
   BookSearchItem,
   CreateReviewRequest,
+  ListItem,
+  PageResponse,
   ReviewItem,
   UnifiedSearchResult,
   UserProfileItem,
@@ -21,6 +23,34 @@ async function searchUsersByUserName(query: string): Promise<UserSearchItem[]> {
     params: { userName: query },
   })
   return dedupeById(response.data)
+}
+
+async function searchListsByQuery(query: string): Promise<ListItem[]> {
+  const normalized = query.trim().toLowerCase()
+  const pageSize = 100
+  const maxPages = 5
+  let page = 0
+  const matches: ListItem[] = []
+
+  while (page < maxPages) {
+    const response = await apiClient.get<PageResponse<ListItem>>('/api/lists/all', {
+      params: { page, size: pageSize },
+    })
+
+    const filtered = response.data.content.filter((item) => {
+      const title = item.title?.toLowerCase() ?? ''
+      const description = item.description?.toLowerCase() ?? ''
+      return title.includes(normalized) || description.includes(normalized)
+    })
+    matches.push(...filtered)
+
+    page += 1
+    if (page >= response.data.totalPages) {
+      break
+    }
+  }
+
+  return dedupeById(matches)
 }
 
 function dedupeById<T extends { id: number }>(items: T[]): T[] {
@@ -69,9 +99,10 @@ export async function createReview(payload: CreateReviewRequest): Promise<Review
 }
 
 export async function unifiedSearch(query: string): Promise<UnifiedSearchResult> {
-  const [booksResult, usersResult] = await Promise.allSettled([
+  const [booksResult, usersResult, listsResult] = await Promise.allSettled([
     searchBooksByTitle(query),
     searchUsersByUserName(query),
+    searchListsByQuery(query),
   ])
 
   const warnings: string[] = []
@@ -86,9 +117,15 @@ export async function unifiedSearch(query: string): Promise<UnifiedSearchResult>
     warnings.push(asWarning('Users search failed', usersResult.reason))
   }
 
+  const lists = listsResult.status === 'fulfilled' ? listsResult.value : []
+  if (listsResult.status === 'rejected') {
+    warnings.push(asWarning('Lists search failed', listsResult.reason))
+  }
+
   return {
     books,
     users,
+    lists,
     warnings,
   }
 }

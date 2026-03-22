@@ -72,5 +72,6 @@ export interface PageResponse<T> {
 export interface UnifiedSearchResult {
   books: BookSearchItem[]
   users: UserSearchItem[]
+  lists: ListItem[]
   warnings: string[]
 }
