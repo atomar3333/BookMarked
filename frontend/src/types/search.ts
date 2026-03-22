@@ -47,6 +47,11 @@ export interface CreateReviewRequest {
   rating: number
 }
 
+export interface UpdateReviewRequest {
+  reviewText?: string
+  rating?: number
+}
+
 export interface ListItem {
   id: number
   userId: number

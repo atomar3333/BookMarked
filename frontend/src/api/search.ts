@@ -6,6 +6,7 @@ import type {
   ListItem,
   ReviewItem,
   UnifiedSearchResult,
+  UpdateReviewRequest,
   UserProfileItem,
   UserSearchItem,
 } from '../types/search'
@@ -74,6 +75,15 @@ export async function getCurrentUser(): Promise<UserProfileItem> {
 export async function createReview(payload: CreateReviewRequest): Promise<ReviewItem> {
   const response = await apiClient.post<ReviewItem>('/api/reviews', payload)
   return response.data
+}
+
+export async function updateReview(reviewId: number, payload: UpdateReviewRequest): Promise<ReviewItem> {
+  const response = await apiClient.put<ReviewItem>(`/api/reviews/${reviewId}`, payload)
+  return response.data
+}
+
+export async function deleteReview(reviewId: number): Promise<void> {
+  await apiClient.delete(`/api/reviews/${reviewId}`)
 }
 
 export async function unifiedSearch(query: string): Promise<UnifiedSearchResult> {

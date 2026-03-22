@@ -14,11 +14,13 @@ import { addBookToList, createList, getListsByUser } from '../api/lists'
 import { getReadingStatusForUserBook, upsertReadingStatus } from '../api/readingStatus'
 import {
   createReview,
+  deleteReview,
   getBookAverageRating,
   getBookById,
   getBookReviews,
   getCurrentUser,
   getUserById,
+  updateReview,
 } from '../api/search'
 import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types/search'
 import type { ReadingStatusValue } from '../types/userPage'
@@ -80,6 +82,7 @@ function BookDetailPage() {
   const [selectedRating, setSelectedRating] = useState(0)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
+  const [deletingReview, setDeletingReview] = useState(false)
   const [lists, setLists] = useState<ListItem[]>([])
   const [listError, setListError] = useState<string | null>(null)
   const [listSuccess, setListSuccess] = useState<string | null>(null)
@@ -192,6 +195,22 @@ function BookDetailPage() {
     loadBook()
   }, [bookId, reloadToken])
 
+  const distribution = buildDistribution(reviews)
+  const existingReview = currentUser
+    ? reviews.find((review) => review.userId === currentUser.id)
+    : undefined
+
+  useEffect(() => {
+    if (existingReview) {
+      setReviewText(existingReview.reviewText ?? '')
+      setSelectedRating(Math.max(1, Math.min(5, Math.round(existingReview.rating))))
+      return
+    }
+
+    setReviewText('')
+    setSelectedRating(0)
+  }, [existingReview?.id, existingReview?.reviewText, existingReview?.rating])
+
   if (loading) {
     return (
       <div className="d-flex align-items-center gap-2">
@@ -208,11 +227,6 @@ function BookDetailPage() {
   if (!book) {
     return <Alert variant="warning">Book not found.</Alert>
   }
-
-  const distribution = buildDistribution(reviews)
-  const existingReview = currentUser
-    ? reviews.find((review) => review.userId === currentUser.id)
-    : undefined
 
   const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -237,22 +251,58 @@ function BookDetailPage() {
 
     setSubmittingReview(true)
     try {
-      await createReview({
-        userId: currentUser.id,
-        bookId: parsedId,
-        reviewText,
-        rating: selectedRating,
-      })
-      setReviewText('')
-      setSelectedRating(0)
-      setReviewSuccess('Review submitted successfully.')
+      if (existingReview) {
+        await updateReview(existingReview.id, {
+          reviewText,
+          rating: selectedRating,
+        })
+        setReviewSuccess('Review updated successfully.')
+      } else {
+        await createReview({
+          userId: currentUser.id,
+          bookId: parsedId,
+          reviewText,
+          rating: selectedRating,
+        })
+        setReviewSuccess('Review submitted successfully.')
+      }
       setReloadToken((value) => value + 1)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to submit review.'
+      const message = err instanceof Error ? err.message : 'Unable to save review.'
       setReviewError(message)
     } finally {
       setSubmittingReview(false)
     }
+  }
+
+  const handleDeleteReview = async (reviewId: number) => {
+    const confirmed = window.confirm('Delete your review for this book?')
+    if (!confirmed) {
+      return
+    }
+
+    setReviewError(null)
+    setReviewSuccess(null)
+    setDeletingReview(true)
+    try {
+      await deleteReview(reviewId)
+      setReviewText('')
+      setSelectedRating(0)
+      setReviewSuccess('Review deleted successfully.')
+      setReloadToken((value) => value + 1)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to delete review.'
+      setReviewError(message)
+    } finally {
+      setDeletingReview(false)
+    }
+  }
+
+  const handleEditExistingReview = (review: ReviewItem) => {
+    setReviewError(null)
+    setReviewSuccess(null)
+    setReviewText(review.reviewText ?? '')
+    setSelectedRating(Math.max(1, Math.min(5, Math.round(review.rating))))
   }
 
   const parsedBookId = Number(bookId)
@@ -470,48 +520,60 @@ function BookDetailPage() {
               </Form>
             </div>
 
-            <h6 className="mb-3">Add Your Review</h6>
+            <h6 className="mb-3">{existingReview ? 'Edit Your Review' : 'Add Your Review'}</h6>
             {reviewError && <Alert variant="danger">{reviewError}</Alert>}
             {reviewSuccess && <Alert variant="success">{reviewSuccess}</Alert>}
-            {existingReview ? (
-              <Alert variant="info">
-                You have already reviewed this book.
-              </Alert>
-            ) : (
-              <Form onSubmit={handleReviewSubmit} className="mb-4">
-                <div className="mb-3">
-                  <div className="small text-muted mb-2">Your rating</div>
-                  <div className="star-rating-selector">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        className={star <= selectedRating ? 'star-button active' : 'star-button'}
-                        onClick={() => setSelectedRating(star)}
-                        aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
+            <Form onSubmit={handleReviewSubmit} className="mb-4">
+              <div className="mb-3">
+                <div className="small text-muted mb-2">Your rating</div>
+                <div className="star-rating-selector">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={star <= selectedRating ? 'star-button active' : 'star-button'}
+                      onClick={() => setSelectedRating(star)}
+                      aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
+                    >
+                      ★
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <Form.Group className="mb-3" controlId="review-text">
-                  <Form.Label>Review</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={4}
-                    value={reviewText}
-                    onChange={(event) => setReviewText(event.target.value)}
-                    placeholder="Write a short review"
-                  />
-                </Form.Group>
+              <Form.Group className="mb-3" controlId="review-text">
+                <Form.Label>Review</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={reviewText}
+                  onChange={(event) => setReviewText(event.target.value)}
+                  placeholder="Write a short review"
+                />
+              </Form.Group>
 
-                <Button type="submit" disabled={submittingReview}>
-                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+              <div className="d-flex flex-wrap gap-2">
+                <Button type="submit" disabled={submittingReview || deletingReview}>
+                  {submittingReview
+                    ? existingReview
+                      ? 'Saving...'
+                      : 'Submitting...'
+                    : existingReview
+                      ? 'Save Changes'
+                      : 'Submit Review'}
                 </Button>
-              </Form>
-            )}
+                {existingReview && (
+                  <Button
+                    type="button"
+                    variant="outline-danger"
+                    disabled={submittingReview || deletingReview}
+                    onClick={() => handleDeleteReview(existingReview.id)}
+                  >
+                    {deletingReview ? 'Deleting...' : 'Delete Review'}
+                  </Button>
+                )}
+              </div>
+            </Form>
 
             <h6 className="mb-3">Reviews</h6>
             {reviews.length === 0 ? (
@@ -536,6 +598,28 @@ function BookDetailPage() {
                         ? review.reviewText
                         : 'No review text provided.'}
                     </div>
+                    {currentUser && review.userId === currentUser.id && (
+                      <div className="d-flex gap-2 mt-3">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline-dark"
+                          disabled={submittingReview || deletingReview}
+                          onClick={() => handleEditExistingReview(review)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline-danger"
+                          disabled={submittingReview || deletingReview}
+                          onClick={() => handleDeleteReview(review.id)}
+                        >
+                          {deletingReview ? 'Deleting...' : 'Delete'}
+                        </Button>
+                      </div>
+                    )}
                   </ListGroup.Item>
                 ))}
               </ListGroup>
