@@ -32,6 +32,9 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/lists">
               Lists
             </Nav.Link>
+            <Nav.Link as={Link} to="/members">
+              Members
+            </Nav.Link>
             <Nav.Link as={Link} to="/search">
               Search
             </Nav.Link>

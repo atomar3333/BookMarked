@@ -4,6 +4,7 @@ import type {
   BookSearchItem,
   CreateReviewRequest,
   ListItem,
+  PageResponse,
   ReviewItem,
   UnifiedSearchResult,
   UpdateReviewRequest,
@@ -69,6 +70,13 @@ export async function getUserById(userId: number): Promise<UserProfileItem> {
 
 export async function getCurrentUser(): Promise<UserProfileItem> {
   const response = await apiClient.get<UserProfileItem>('/api/users/me')
+  return response.data
+}
+
+export async function getAllUsers(page = 0, size = 10): Promise<PageResponse<UserProfileItem>> {
+  const response = await apiClient.get<PageResponse<UserProfileItem>>('/api/users/all', {
+    params: { page, size },
+  })
   return response.data
 }
 

@@ -11,6 +11,7 @@ import UnifiedSearchPage from '../features/search/UnifiedSearchPage'
 import BookDetailPage from '../pages/BookDetailPage'
 import EditProfilePage from '../pages/EditProfilePage'
 import HomePage from '../pages/HomePage'
+import MembersPage from '../pages/MembersPage'
 import ProfilePage from '../pages/ProfilePage'
 import UserPage from '../pages/UserPage'
 
@@ -27,6 +28,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/edit" element={<EditProfilePage />} />
+        <Route path="/members" element={<MembersPage />} />
         <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />
