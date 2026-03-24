@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import com.example.demo.dto.LikeStatsDto;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "book_likes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "book_id"})
+})
 @Data
-public class Review {
+public class BookLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +24,11 @@ public class Review {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @Column(name = "review_text", columnDefinition = "TEXT")
-    private String reviewText;
-
-    @Column(name = "rating", nullable = false)
-    private Integer rating;
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Transient
-    private LikeStatsDto likeStats;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

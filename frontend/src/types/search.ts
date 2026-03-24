@@ -1,3 +1,8 @@
+export interface LikeStatsDto {
+  likeCount: number
+  likedByCurrentUser: boolean
+}
+
 export interface BookSearchItem {
   id: number
   title: string
@@ -15,6 +20,7 @@ export interface BookDetail {
   coverImageUrl?: string
   description?: string
   publishDate?: string
+  likeStats?: LikeStatsDto
 }
 
 export interface UserSearchItem {
@@ -38,6 +44,7 @@ export interface ReviewItem {
   reviewText?: string
   rating: number
   createdAt?: string
+  likeStats?: LikeStatsDto
 }
 
 export interface CreateReviewRequest {
@@ -58,6 +65,7 @@ export interface ListItem {
   title: string
   description?: string
   createdDate?: string
+  likeStats?: LikeStatsDto
 }
 
 export interface CreateListRequest {

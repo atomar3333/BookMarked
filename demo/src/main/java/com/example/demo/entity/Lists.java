@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import com.example.demo.dto.LikeStatsDto;
 
 @Entity
 @Table(name = "lists")
@@ -26,6 +27,9 @@ public class Lists {
 
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
+
+    @Transient
+    private LikeStatsDto likeStats;
 
     @PrePersist
     public void prePersist() {

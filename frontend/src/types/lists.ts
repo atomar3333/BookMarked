@@ -1,9 +1,12 @@
+import type { LikeStatsDto } from './search'
+
 export interface ListTileItem {
   id: number
   userId: number
   title: string
   description?: string
   createdDate?: string
+  likeStats?: LikeStatsDto
 }
 
 export interface ListsPageResponse {

@@ -22,6 +22,7 @@ import {
   getUserById,
   updateReview,
 } from '../api/search'
+import { getBookLikeStats, likeBook, unlikeBook, getReviewLikeStats, likeReview, unlikeReview } from '../api/likes'
 import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types/search'
 import type { ReadingStatusValue } from '../types/userPage'
 import ReadingStatusActions from '../components/ReadingStatusActions'
@@ -100,6 +101,12 @@ function BookDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentStatus, setCurrentStatus] = useState<ReadingStatusValue | undefined>(undefined)
   const [savingStatus, setSavingStatus] = useState(false)
+  const [bookLikeCount, setBookLikeCount] = useState(0)
+  const [bookLikedByCurrentUser, setBookLikedByCurrentUser] = useState(false)
+  const [likingBook, setLikingBook] = useState(false)
+  const [reviewLikeStates, setReviewLikeStates] = useState<Record<number, { count: number; liked: boolean }>>({})
+  const [likingReviewId, setLikingReviewId] = useState<number | null>(null)
+  const [likeError, setLikeError] = useState<string | null>(null)
 
   useEffect(() => {
     const parsedId = Number(bookId)
@@ -112,6 +119,7 @@ function BookDetailPage() {
     const loadBook = async () => {
       try {
         setRatingWarning(null)
+        setLikeError(null)
 
         const [bookResult, averageResult, reviewsResult, currentUserResult] = await Promise.allSettled([
           getBookById(parsedId),
@@ -125,6 +133,16 @@ function BookDetailPage() {
         }
 
         setBook(bookResult.value)
+
+        // Load book like stats
+        try {
+          const bookLikeStats = await getBookLikeStats(parsedId)
+          setBookLikeCount(bookLikeStats.likeCount)
+          setBookLikedByCurrentUser(bookLikeStats.likedByCurrentUser)
+        } catch {
+          setBookLikeCount(0)
+          setBookLikedByCurrentUser(false)
+        }
 
         if (averageResult.status === 'fulfilled') {
           setAverageRating(averageResult.value)
@@ -183,6 +201,26 @@ function BookDetailPage() {
             if (hasUserLookupFailure) {
               setRatingWarning('Some reviewer names are unavailable right now.')
             }
+
+            // Load like stats for all reviews
+            const reviewLikeResults = await Promise.allSettled(
+              reviewItems.map((review) => getReviewLikeStats(review.id)),
+            )
+
+            const likeStates: Record<number, { count: number; liked: boolean }> = {}
+            reviewItems.forEach((review, index) => {
+              const result = reviewLikeResults[index]
+              if (result.status === 'fulfilled') {
+                likeStates[review.id] = {
+                  count: result.value.likeCount,
+                  liked: result.value.likedByCurrentUser,
+                }
+              } else {
+                likeStates[review.id] = { count: 0, liked: false }
+              }
+            })
+
+            setReviewLikeStates(likeStates)
           }
         } else {
           setRatingWarning('Rating distribution is unavailable right now.')
@@ -406,6 +444,72 @@ function BookDetailPage() {
     }
   }
 
+  const handleLikeBook = async () => {
+    if (!currentUser) {
+      setLikeError('You must be logged in to like this book.')
+      return
+    }
+
+    const wasLiked = bookLikedByCurrentUser
+
+    setLikingBook(true)
+    setLikeError(null)
+    setBookLikedByCurrentUser(!wasLiked)
+    setBookLikeCount((count) => Math.max(0, count + (wasLiked ? -1 : 1)))
+
+    try {
+      if (wasLiked) {
+        await unlikeBook(parsedBookId)
+      } else {
+        await likeBook(parsedBookId)
+      }
+    } catch (err) {
+      setBookLikedByCurrentUser(wasLiked)
+      setBookLikeCount((count) => Math.max(0, count + (wasLiked ? 1 : -1)))
+      const message = err instanceof Error ? err.message : 'Unable to like book.'
+      setLikeError(message)
+    } finally {
+      setLikingBook(false)
+    }
+  }
+
+  const handleLikeReview = async (reviewId: number) => {
+    if (!currentUser) {
+      setLikeError('You must be logged in to like this review.')
+      return
+    }
+
+    const currentState = reviewLikeStates[reviewId] || { count: 0, liked: false }
+    const nextState = {
+      count: Math.max(0, currentState.count + (currentState.liked ? -1 : 1)),
+      liked: !currentState.liked,
+    }
+
+    setLikingReviewId(reviewId)
+    setLikeError(null)
+    setReviewLikeStates((prev) => ({
+      ...prev,
+      [reviewId]: nextState,
+    }))
+
+    try {
+      if (currentState.liked) {
+        await unlikeReview(reviewId)
+      } else {
+        await likeReview(reviewId)
+      }
+    } catch (err) {
+      setReviewLikeStates((prev) => ({
+        ...prev,
+        [reviewId]: currentState,
+      }))
+      const message = err instanceof Error ? err.message : 'Unable to like review.'
+      setLikeError(message)
+    } finally {
+      setLikingReviewId(null)
+    }
+  }
+
   return (
     <Card className="book-template-card shadow-sm">
       <Card.Body>
@@ -436,6 +540,20 @@ function BookDetailPage() {
               </div>
             )}
 
+            <div className="mb-3">
+              <Button
+                variant={bookLikedByCurrentUser ? 'dark' : 'outline-dark'}
+                size="sm"
+                disabled={likingBook || !currentUser}
+                onClick={handleLikeBook}
+                className="d-flex align-items-center gap-2"
+              >
+                <span aria-hidden="true">{bookLikedByCurrentUser ? '♥' : '♡'}</span>
+                <span>{likingBook ? 'Liking...' : 'Like'}</span>
+                {bookLikeCount > 0 && <span className="small">({bookLikeCount})</span>}
+              </Button>
+              {likeError && <div className="text-danger small mt-2">{likeError}</div>}
+            </div>
 
             {ratingWarning && (
               <Alert variant="warning" className="py-2 mb-3">
@@ -617,6 +735,32 @@ function BookDetailPage() {
                       {review.reviewText && review.reviewText.trim().length > 0
                         ? review.reviewText
                         : 'No review text provided.'}
+                    </div>
+                    <div className="d-flex gap-2 align-items-center mt-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={
+                          reviewLikeStates[review.id]?.liked
+                            ? 'dark'
+                            : 'outline-secondary'
+                        }
+                        disabled={likingReviewId === review.id || !currentUser}
+                        onClick={() => handleLikeReview(review.id)}
+                        className="d-flex align-items-center gap-1"
+                      >
+                        <span className="small">
+                          {reviewLikeStates[review.id]?.liked ? '♥' : '♡'}
+                        </span>
+                        <span className="small">
+                          {likingReviewId === review.id ? 'Liking...' : 'Like'}
+                        </span>
+                        {(reviewLikeStates[review.id]?.count ?? 0) > 0 && (
+                          <span className="small">
+                            ({reviewLikeStates[review.id]?.count})
+                          </span>
+                        )}
+                      </Button>
                     </div>
                     {currentUser && review.userId === currentUser.id && (
                       <div className="d-flex gap-2 mt-3">

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import com.example.demo.dto.LikeStatsDto;
 
 @Entity
 @Table(name = "books")
@@ -35,6 +36,9 @@ public class Book {
 
     @Column(name = "publish_date")
     private LocalDate publishDate;
+
+    @Transient
+    private LikeStatsDto likeStats;
 
    // @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     //private List<com.example.demo.entity.Review> reviews;

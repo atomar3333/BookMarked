@@ -9,6 +9,7 @@ public class ReviewDto {
     private String reviewText;
     private Integer rating;
     private LocalDateTime createdAt;
+    private LikeStatsDto likeStats;
 
     public ReviewDto() {}
 
@@ -24,4 +25,6 @@ public class ReviewDto {
     public void setRating(Integer rating) { this.rating = rating; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LikeStatsDto getLikeStats() { return likeStats; }
+    public void setLikeStats(LikeStatsDto likeStats) { this.likeStats = likeStats; }
 }

@@ -8,6 +8,7 @@ public class ListDto {
     private String title;
     private String description;
     private LocalDateTime createdDate;
+    private LikeStatsDto likeStats;
 
     public ListDto() {
     }
@@ -50,5 +51,13 @@ public class ListDto {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public LikeStatsDto getLikeStats() {
+        return likeStats;
+    }
+
+    public void setLikeStats(LikeStatsDto likeStats) {
+        this.likeStats = likeStats;
     }
 }

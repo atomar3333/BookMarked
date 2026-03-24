@@ -1,0 +1,84 @@
+package com.example.demo.rest;
+
+import com.example.demo.dto.LikeDto;
+import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.service.ListLikeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/lists/{listId}/likes")
+@RequiredArgsConstructor
+public class ListLikeController {
+
+    private final ListLikeService listLikeService;
+
+    @PostMapping
+    public ResponseEntity<LikeDto> likeList(@PathVariable Long listId) {
+        try {
+            LikeDto like = listLikeService.likeList(listId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(like);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("already liked")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> unlikeList(@PathVariable Long listId) {
+        try {
+            listLikeService.unlikeList(listId);
+            return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<LikeStatsDto> getLikeStats(@PathVariable Long listId) {
+        try {
+            LikeStatsDto stats = listLikeService.getListLikeStats(listId);
+            return ResponseEntity.ok(stats);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<LikeDto>> getListLikes(
+            @PathVariable Long listId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Page<LikeDto> likes = listLikeService.getListLikes(listId, page, size);
+            return ResponseEntity.ok(likes);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Boolean>> hasUserLiked(@PathVariable Long listId) {
+        try {
+            boolean liked = listLikeService.hasUserLikedList(1L, listId); // TODO: Get current user ID
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("liked", liked);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+}
