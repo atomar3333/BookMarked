@@ -7,6 +7,7 @@ export interface BookSearchItem {
   id: number
   title: string
   author: string
+  authors?: Array<{ id: number; authorName: string }>
   coverImageUrl?: string
   description?: string
 }
@@ -16,6 +17,7 @@ export interface BookDetail {
   googleBooksId?: string
   title: string
   author: string
+  authors?: Array<{ id: number; authorName: string }>
   isbn?: string
   coverImageUrl?: string
   description?: string

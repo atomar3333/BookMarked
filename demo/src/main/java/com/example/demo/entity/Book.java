@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import com.example.demo.dto.LikeStatsDto;
 
@@ -39,6 +40,14 @@ public class Book {
 
     @Transient
     private LikeStatsDto likeStats;
+
+    @ManyToMany
+    @JoinTable(
+        name = "book_author",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private List<Author> authors = new ArrayList<>();
 
    // @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     //private List<com.example.demo.entity.Review> reviews;

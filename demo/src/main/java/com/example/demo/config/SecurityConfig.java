@@ -48,6 +48,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/books/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasAuthority("ROLE_ADMIN")
+                            // Admin-only: manage author catalog
+                            .requestMatchers(HttpMethod.POST, "/api/authors/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/api/authors/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/api/authors/**").hasAuthority("ROLE_ADMIN")
                         // Admin-only: delete or manage other users
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
                         // Everything else: any authenticated user

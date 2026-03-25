@@ -8,6 +8,8 @@ import ListDetailPage from '../features/lists/ListDetailPage'
 import ListsPage from '../features/lists/ListsPage'
 import RegisterPage from '../features/auth/RegisterPage'
 import UnifiedSearchPage from '../features/search/UnifiedSearchPage'
+import AuthorDetailPage from '../pages/AuthorDetailPage'
+import AuthorsPage from '../pages/AuthorsPage'
 import BookDetailPage from '../pages/BookDetailPage'
 import EditProfilePage from '../pages/EditProfilePage'
 import HomePage from '../pages/HomePage'
@@ -29,6 +31,8 @@ function AppRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/edit" element={<EditProfilePage />} />
         <Route path="/members" element={<MembersPage />} />
+        <Route path="/authors" element={<AuthorsPage />} />
+        <Route path="/authors/:authorId" element={<AuthorDetailPage />} />
         <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />

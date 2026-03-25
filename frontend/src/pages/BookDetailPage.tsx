@@ -9,7 +9,7 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Row from 'react-bootstrap/Row'
 import Spinner from 'react-bootstrap/Spinner'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { addBookToList, createList, getListsByUser } from '../api/lists'
 import { getReadingStatusForUserBook, upsertReadingStatus } from '../api/readingStatus'
 import {
@@ -548,7 +548,23 @@ function BookDetailPage() {
 
           <Col md={8}>
             <h2 className="mb-1">{book.title}</h2>
-            <p className="text-muted mb-3">by {book.author}</p>
+            <p className="text-muted mb-3">
+              {book.authors && book.authors.length > 0 ? (
+                <>
+                  by{' '}
+                  {book.authors.map((author, index) => (
+                    <span key={author.id}>
+                      {index > 0 ? ', ' : ''}
+                      <Link to={`/authors/${author.id}`}>{author.authorName}</Link>
+                    </span>
+                  ))}
+                </>
+              ) : (
+                <>
+                  by <Link to={`/authors?name=${encodeURIComponent(book.author)}`}>{book.author}</Link>
+                </>
+              )}
+            </p>
 
             {currentUser && (
               <div className="mb-3">

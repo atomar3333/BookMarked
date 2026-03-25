@@ -34,7 +34,23 @@ function BookTile({
             {book.title}
           </Link>
         </Card.Title>
-        <Card.Text className="text-muted mb-3">{book.author}</Card.Text>
+        <Card.Text className="text-muted mb-3">
+          {book.authors && book.authors.length > 0 ? (
+            <>
+              by{' '}
+              {book.authors.map((author, index) => (
+                <span key={author.id}>
+                  {index > 0 ? ', ' : ''}
+                  <Link to={`/authors/${author.id}`}>{author.authorName}</Link>
+                </span>
+              ))}
+            </>
+          ) : (
+            <>
+              by <Link to={`/authors?name=${encodeURIComponent(book.author)}`}>{book.author}</Link>
+            </>
+          )}
+        </Card.Text>
 
         {showStatusActions && onSetStatus && (
           <ReadingStatusActions
