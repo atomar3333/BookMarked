@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
+
+    private static final BigDecimal MIN_RATING = new BigDecimal("1.0");
+    private static final BigDecimal MAX_RATING = new BigDecimal("5.0");
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
@@ -34,7 +38,9 @@ public class ReviewService {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new RuntimeException("Book not found with ID: " + request.getBookId()));
 
-        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
+        if (request.getRating() == null
+            || request.getRating().compareTo(MIN_RATING) < 0
+            || request.getRating().compareTo(MAX_RATING) > 0) {
             throw new RuntimeException("Rating must be between 1 and 5");
         }
 
@@ -82,7 +88,8 @@ public class ReviewService {
             review.setReviewText(request.getReviewText());
         }
         if (request.getRating() != null) {
-            if (request.getRating() < 1 || request.getRating() > 5) {
+            if (request.getRating().compareTo(MIN_RATING) < 0
+                    || request.getRating().compareTo(MAX_RATING) > 0) {
                 throw new RuntimeException("Rating must be between 1 and 5");
             }
             review.setRating(request.getRating());
@@ -106,7 +113,7 @@ public class ReviewService {
         }
         List<Review> reviews = reviewRepository.findByBookId(bookId);
         if (reviews.isEmpty()) return 0.0;
-        double sum = reviews.stream().mapToDouble(Review::getRating).sum();
+        double sum = reviews.stream().mapToDouble(review -> review.getRating().doubleValue()).sum();
         return sum / reviews.size();
     }
 

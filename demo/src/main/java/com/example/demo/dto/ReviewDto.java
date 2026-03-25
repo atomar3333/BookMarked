@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class ReviewDto {
@@ -7,7 +8,7 @@ public class ReviewDto {
     private Long userId;
     private Long bookId;
     private String reviewText;
-    private Integer rating;
+    private BigDecimal rating;
     private LocalDateTime createdAt;
     private LikeStatsDto likeStats;
 
@@ -21,8 +22,8 @@ public class ReviewDto {
     public void setBookId(Long bookId) { this.bookId = bookId; }
     public String getReviewText() { return reviewText; }
     public void setReviewText(String reviewText) { this.reviewText = reviewText; }
-    public Integer getRating() { return rating; }
-    public void setRating(Integer rating) { this.rating = rating; }
+    public BigDecimal getRating() { return rating; }
+    public void setRating(BigDecimal rating) { this.rating = rating; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LikeStatsDto getLikeStats() { return likeStats; }

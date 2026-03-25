@@ -33,6 +33,26 @@ interface RatingDistributionItem {
   percentage: number
 }
 
+function normalizeHalfStepRating(value: number): number {
+  const clamped = Math.max(1, Math.min(5, value))
+  return Math.round(clamped * 2) / 2
+}
+
+function formatRating(value: number): string {
+  return Number.isInteger(value) ? `${value}` : value.toFixed(1)
+}
+
+function getStarFillPercentage(starNumber: number, rating: number): number {
+  const fill = rating - (starNumber - 1)
+  if (fill >= 1) {
+    return 100
+  }
+  if (fill <= 0) {
+    return 0
+  }
+  return fill * 100
+}
+
 function formatReviewDate(value?: string): string {
   if (!value) {
     return 'Unknown date'
@@ -250,7 +270,7 @@ function BookDetailPage() {
   useEffect(() => {
     if (existingReview) {
       setReviewText(existingReview.reviewText ?? '')
-      setSelectedRating(Math.max(1, Math.min(5, Math.round(existingReview.rating))))
+      setSelectedRating(normalizeHalfStepRating(existingReview.rating))
       return
     }
 
@@ -359,7 +379,7 @@ function BookDetailPage() {
     setReviewError(null)
     setReviewSuccess(null)
     setReviewText(review.reviewText ?? '')
-    setSelectedRating(Math.max(1, Math.min(5, Math.round(review.rating))))
+    setSelectedRating(normalizeHalfStepRating(review.rating))
   }
 
   const parsedBookId = Number(bookId)
@@ -663,18 +683,38 @@ function BookDetailPage() {
             <Form onSubmit={handleReviewSubmit} className="mb-4">
               <div className="mb-3">
                 <div className="small text-muted mb-2">Your rating</div>
-                <div className="star-rating-selector">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={star <= selectedRating ? 'star-button active' : 'star-button'}
-                      onClick={() => setSelectedRating(star)}
-                      aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
-                    >
-                      ★
-                    </button>
-                  ))}
+                <div className="star-rating-selector" role="radiogroup" aria-label="Select rating from 1 to 5 in 0.5 steps">
+                  {[1, 2, 3, 4, 5].map((starNumber) => {
+                    const fillPercentage = getStarFillPercentage(starNumber, selectedRating)
+                    const leftHalfValue = Math.max(1, starNumber - 0.5)
+                    const rightHalfValue = starNumber
+
+                    return (
+                      <div key={starNumber} className="star-split-control">
+                        <button
+                          type="button"
+                          className="star-half-button left"
+                          onClick={() => setSelectedRating(leftHalfValue)}
+                          aria-label={`Set rating to ${formatRating(leftHalfValue)} stars`}
+                        />
+                        <button
+                          type="button"
+                          className="star-half-button right"
+                          onClick={() => setSelectedRating(rightHalfValue)}
+                          aria-label={`Set rating to ${formatRating(rightHalfValue)} stars`}
+                        />
+                        <span className="star-icon" aria-hidden="true">
+                          <span className="star-icon-base">★</span>
+                          <span className="star-icon-fill" style={{ width: `${fillPercentage}%` }}>
+                            ★
+                          </span>
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="small text-muted mt-2">
+                  Selected: {selectedRating > 0 ? `${formatRating(selectedRating)} / 5` : 'Not selected'}
                 </div>
               </div>
 
@@ -724,7 +764,7 @@ function BookDetailPage() {
                   <ListGroup.Item key={review.id} className="px-0">
                     <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
                       <div className="d-flex align-items-center gap-2">
-                        <Badge bg="dark">{Math.max(1, Math.min(5, Math.round(review.rating)))}★</Badge>
+                        <Badge bg="dark">{formatRating(normalizeHalfStepRating(review.rating))}★</Badge>
                         <span className="text-muted small">
                           {reviewUserNames[review.userId] ?? `User #${review.userId}`}
                         </span>

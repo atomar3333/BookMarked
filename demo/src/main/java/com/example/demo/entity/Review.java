@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.example.demo.dto.LikeStatsDto;
 
@@ -26,8 +27,8 @@ public class Review {
     @Column(name = "review_text", columnDefinition = "TEXT")
     private String reviewText;
 
-    @Column(name = "rating", nullable = false)
-    private Integer rating;
+    @Column(name = "rating", nullable = false, precision = 3, scale = 2)
+    private BigDecimal rating;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
