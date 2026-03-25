@@ -6,6 +6,7 @@ export interface ListTileItem {
   title: string
   description?: string
   createdDate?: string
+  isPublic?: boolean
   likeStats?: LikeStatsDto
 }
 

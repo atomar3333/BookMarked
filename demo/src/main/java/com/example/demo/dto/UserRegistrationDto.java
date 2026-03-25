@@ -5,6 +5,7 @@ public class UserRegistrationDto {
     private String emailId;
     private String password; // Raw password from user
     private String bio;
+    private Boolean isProfilePublic;
 
     public String getUserName() {
         return userName;
@@ -36,5 +37,13 @@ public class UserRegistrationDto {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public Boolean getIsProfilePublic() {
+        return isProfilePublic;
+    }
+
+    public void setIsProfilePublic(Boolean isProfilePublic) {
+        this.isProfilePublic = isProfilePublic;
     }
 }

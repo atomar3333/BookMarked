@@ -6,6 +6,7 @@ interface UpdateProfileRequest {
   userName?: string
   emailId?: string
   bio?: string
+  isProfilePublic?: boolean
 }
 
 function normalizeProfileError(error: unknown): Error {

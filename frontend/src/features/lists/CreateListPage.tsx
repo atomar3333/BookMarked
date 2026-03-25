@@ -17,6 +17,7 @@ function CreateListPage() {
   const [userId, setUserId] = useState<number | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [isPublic, setIsPublic] = useState(true)
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<BookSearchItem[]>([])
   const [selectedBooks, setSelectedBooks] = useState<BookSearchItem[]>([])
@@ -107,6 +108,7 @@ function CreateListPage() {
         userId,
         title: title.trim(),
         description: description.trim(),
+        isPublic,
       })
 
       for (const book of selectedBooks) {
@@ -167,6 +169,15 @@ function CreateListPage() {
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="What is this list about?"
+              />
+            </Form.Group>
+
+            <Form.Group className="mt-3" controlId="create-list-visibility">
+              <Form.Check
+                type="switch"
+                label={isPublic ? 'Public — visible to everyone' : 'Private — only you can see this'}
+                checked={isPublic}
+                onChange={(event) => setIsPublic(event.target.checked)}
               />
             </Form.Group>
           </Card.Body>

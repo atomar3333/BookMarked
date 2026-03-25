@@ -28,6 +28,9 @@ public class Lists {
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = true;
+
     @Transient
     private LikeStatsDto likeStats;
 

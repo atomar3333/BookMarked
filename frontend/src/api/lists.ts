@@ -5,6 +5,7 @@ import type { CreateListRequest, ListItem, PageResponse } from '../types/search'
 interface UpdateListRequest {
   title: string
   description: string
+  isPublic?: boolean
 }
 
 function normalizeListError(error: unknown): Error {

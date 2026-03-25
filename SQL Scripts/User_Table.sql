@@ -5,5 +5,6 @@ CREATE TABLE users (
    password_hash VARCHAR(255) UNIQUE NOT NULL,
    bio TEXT,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   profile_picture_url VARCHAR(255)
+   profile_picture_url VARCHAR(255),
+   is_profile_public BOOLEAN NOT NULL DEFAULT TRUE
  );

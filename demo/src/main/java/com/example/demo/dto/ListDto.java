@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 public class ListDto {
@@ -8,6 +9,7 @@ public class ListDto {
     private String title;
     private String description;
     private LocalDateTime createdDate;
+    private boolean isPublic;
     private LikeStatsDto likeStats;
 
     public ListDto() {
@@ -51,6 +53,15 @@ public class ListDto {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    @JsonProperty("isPublic")
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     public LikeStatsDto getLikeStats() {

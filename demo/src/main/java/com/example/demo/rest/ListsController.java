@@ -40,6 +40,8 @@ public class ListsController {
     public ResponseEntity<ListDto> getListById(@PathVariable Long listId) {
         try {
             return ResponseEntity.ok(listsService.getListById(listId));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -135,6 +137,8 @@ public class ListsController {
             @RequestParam(defaultValue = "10") int size) {
         try {
             return ResponseEntity.ok(bookListService.getBooksInList(listId, page, size));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -148,6 +152,8 @@ public class ListsController {
             response.put("listId", listId);
             response.put("bookCount", count);
             return ResponseEntity.ok(response);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

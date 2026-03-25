@@ -35,6 +35,7 @@ export interface UserProfileItem {
   userName: string
   emailId?: string
   bio?: string
+  isProfilePublic?: boolean
 }
 
 export interface ReviewItem {
@@ -65,6 +66,7 @@ export interface ListItem {
   title: string
   description?: string
   createdDate?: string
+  isPublic?: boolean
   likeStats?: LikeStatsDto
 }
 
@@ -72,6 +74,7 @@ export interface CreateListRequest {
   userId: number
   title: string
   description: string
+  isPublic?: boolean
 }
 
 export interface PageResponse<T> {

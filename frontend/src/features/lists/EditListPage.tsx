@@ -23,6 +23,7 @@ function EditListPage() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [isPublic, setIsPublic] = useState(true)
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<BookSearchItem[]>([])
   const [books, setBooks] = useState<BookSearchItem[]>([])
@@ -58,6 +59,7 @@ function EditListPage() {
         setTitle(list.title)
         setDescription(list.description ?? '')
         setIsOwner(me.id === list.userId)
+        setIsPublic(list.isPublic ?? true)
 
         const uniqueBookIds = Array.from(new Set(entriesPage.content.map((entry) => entry.bookId)))
         const bookResults = await Promise.allSettled(uniqueBookIds.map((bookId) => getBookById(bookId)))
@@ -135,6 +137,7 @@ function EditListPage() {
       await updateList(parsedId, {
         title: title.trim(),
         description: description.trim(),
+        isPublic,
       })
       setSuccess('List details updated.')
     } catch (err) {
@@ -274,6 +277,15 @@ function EditListPage() {
                 rows={3}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mt-3" controlId="edit-list-visibility">
+              <Form.Check
+                type="switch"
+                label={isPublic ? 'Public — visible to everyone' : 'Private — only you can see this'}
+                checked={isPublic}
+                onChange={(event) => setIsPublic(event.target.checked)}
               />
             </Form.Group>
 

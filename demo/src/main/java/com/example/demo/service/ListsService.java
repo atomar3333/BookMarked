@@ -49,18 +49,25 @@ public class ListsService {
         list.setUser(user);
         list.setTitle(request.getTitle());
         list.setDescription(request.getDescription());
+        list.setPublic(request.isPublic());
 
         return mapToDto(listsRepository.save(list));
     }
 
     public ListDto getListById(Long listId) {
-        return mapToDto(listsRepository.findById(listId)
-                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId)));
+        Lists list = listsRepository.findById(listId)
+                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+        assertListVisibleToCurrentViewer(list);
+        return mapToDto(list);
     }
 
     public Page<ListDto> getAllLists(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return listsRepository.findAll(pageable).map(this::mapToDto);
+        User viewer = getCurrentUserOrThrow();
+        if (viewer.getRole() == Role.ROLE_ADMIN) {
+            return listsRepository.findAll(pageable).map(this::mapToDto);
+        }
+        return listsRepository.findVisibleToViewer(viewer.getId(), pageable).map(this::mapToDto);
     }
 
     public Page<ListDto> getListsByUser(Long userId, int page, int size) {
@@ -68,7 +75,13 @@ public class ListsService {
             throw new RuntimeException("User not found with ID: " + userId);
         }
         Pageable pageable = PageRequest.of(page, size);
-        return listsRepository.findByUserId(userId, pageable).map(this::mapToDto);
+        User viewer = getCurrentUserOrThrow();
+        boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+        boolean isSelf = viewer.getId().equals(userId);
+        if (isAdmin || isSelf) {
+            return listsRepository.findByUserId(userId, pageable).map(this::mapToDto);
+        }
+        return listsRepository.findByUserIdAndIsPublicTrue(userId, pageable).map(this::mapToDto);
     }
 
     public List<ListDto> searchLists(String query) {
@@ -76,8 +89,15 @@ public class ListsService {
             throw new RuntimeException("Search query cannot be empty");
         }
 
-        return listsRepository
-                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query)
+        User viewer = getCurrentUserOrThrow();
+        List<Lists> visibleLists;
+        if (viewer.getRole() == Role.ROLE_ADMIN) {
+            visibleLists = listsRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query);
+        } else {
+            visibleLists = listsRepository.findVisibleToViewerByTitleOrDescriptionContaining(viewer.getId(), query);
+        }
+
+        return visibleLists
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -100,6 +120,10 @@ public class ListsService {
             list.setDescription(request.getDescription());
         }
 
+        if (request.getIsPublic() != null) {
+            list.setPublic(request.getIsPublic());
+        }
+
         return mapToDto(listsRepository.save(list));
     }
 
@@ -118,7 +142,24 @@ public class ListsService {
         dto.setTitle(list.getTitle());
         dto.setDescription(list.getDescription());
         dto.setCreatedDate(list.getCreatedDate());
+        dto.setPublic(list.isPublic());
         return dto;
+    }
+
+    public void assertListVisibility(Long listId) {
+        Lists list = listsRepository.findById(listId)
+                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+        assertListVisibleToCurrentViewer(list);
+    }
+
+    private void assertListVisibleToCurrentViewer(Lists list) {
+        if (!list.isPublic()) {
+            User viewer = getCurrentUserOrThrow();
+            boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+            if (!isAdmin && !viewer.getId().equals(list.getUser().getId())) {
+                throw new AccessDeniedException("This list is private");
+            }
+        }
     }
 
     private User getCurrentUserOrThrow() {

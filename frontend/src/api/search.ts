@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { apiClient } from './client'
 import type {
   BookDetail,
@@ -64,8 +65,15 @@ export async function getBookReviews(bookId: number): Promise<ReviewItem[]> {
 }
 
 export async function getUserById(userId: number): Promise<UserProfileItem> {
-  const response = await apiClient.get<UserProfileItem>(`/api/users/${userId}`)
-  return response.data
+  try {
+    const response = await apiClient.get<UserProfileItem>(`/api/users/${userId}`)
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      throw new Error('PRIVATE_PROFILE')
+    }
+    throw error
+  }
 }
 
 export async function getCurrentUser(): Promise<UserProfileItem> {

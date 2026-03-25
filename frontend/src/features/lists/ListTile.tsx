@@ -1,3 +1,4 @@
+import Badge from 'react-bootstrap/Badge'
 import Card from 'react-bootstrap/Card'
 import { Link } from 'react-router-dom'
 import type { ListTileItem } from '../../types/lists'
@@ -21,12 +22,17 @@ function ListTile({ list }: ListTileProps) {
           </div>
           <div className="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
             <div className="small text-muted">User #{list.userId}</div>
-            {list.likeStats && (
-              <div className="small text-muted d-flex align-items-center gap-1">
-                <span>❤️</span>
-                <span>{list.likeStats.likeCount}</span>
-              </div>
-            )}
+            <div className="d-flex align-items-center gap-2">
+              {list.isPublic === false && (
+                <Badge bg="secondary" className="small">🔒 Private</Badge>
+              )}
+              {list.likeStats && (
+                <div className="small text-muted d-flex align-items-center gap-1">
+                  <span>❤️</span>
+                  <span>{list.likeStats.likeCount}</span>
+                </div>
+              )}
+            </div>
           </div>
         </Card.Body>
       </Card>

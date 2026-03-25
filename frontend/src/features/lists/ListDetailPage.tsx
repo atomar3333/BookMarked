@@ -25,6 +25,7 @@ function ListDetailPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPrivateList, setIsPrivateList] = useState(false)
   const [currentUser, setCurrentUser] = useState<UserProfileItem | null>(null)
   const [listLikeCount, setListLikeCount] = useState(0)
   const [listLikedByCurrentUser, setListLikedByCurrentUser] = useState(false)
@@ -43,6 +44,7 @@ function ListDetailPage() {
       setLoading(true)
       setError(null)
       setLikeError(null)
+      setIsPrivateList(false)
       try {
         const [listResult, entriesResult, userResult] = await Promise.allSettled([
           getListById(parsedId),
@@ -50,7 +52,13 @@ function ListDetailPage() {
           getCurrentUser(),
         ])
 
-        if (listResult.status === 'rejected') throw listResult.reason
+        if (listResult.status === 'rejected') {
+          if (listResult.reason instanceof Error && listResult.reason.message === 'PRIVATE_LIST') {
+            setIsPrivateList(true)
+            return
+          }
+          throw listResult.reason
+        }
         if (entriesResult.status === 'rejected') throw entriesResult.reason
 
         if (userResult.status === 'fulfilled') {
@@ -144,6 +152,14 @@ function ListDetailPage() {
 
   if (error) {
     return <Alert variant="danger">{error}</Alert>
+  }
+
+  if (isPrivateList) {
+    return (
+      <Alert variant="secondary" className="mt-3">
+        <strong>Private List</strong> — The owner has set this list to private.
+      </Alert>
+    )
   }
 
   if (!list) {

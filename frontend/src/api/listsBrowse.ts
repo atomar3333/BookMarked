@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { apiClient } from './client'
 import type {
   ListBookEntriesPageResponse,
@@ -13,8 +14,15 @@ export async function getListsPage(page: number, size: number): Promise<ListsPag
 }
 
 export async function getListById(listId: number): Promise<ListTileItem> {
-  const response = await apiClient.get<ListTileItem>(`/api/lists/${listId}`)
-  return response.data
+  try {
+    const response = await apiClient.get<ListTileItem>(`/api/lists/${listId}`)
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      throw new Error('PRIVATE_LIST')
+    }
+    throw error
+  }
 }
 
 export async function getBooksInList(
@@ -22,8 +30,15 @@ export async function getBooksInList(
   page: number,
   size: number,
 ): Promise<ListBookEntriesPageResponse> {
-  const response = await apiClient.get<ListBookEntriesPageResponse>(`/api/lists/${listId}/books`, {
-    params: { page, size },
-  })
-  return response.data
+  try {
+    const response = await apiClient.get<ListBookEntriesPageResponse>(`/api/lists/${listId}/books`, {
+      params: { page, size },
+    })
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      throw new Error('PRIVATE_LIST')
+    }
+    throw error
+  }
 }

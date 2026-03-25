@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.demo.entity.User;
 import java.util.List;
+import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -37,13 +38,26 @@ public class UserService {
     }
 
     public User getUserById(Long userId) {
-        return userRepository.findById(userId)
+        User target = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        if (!target.isProfilePublic()) {
+            User viewer = getCurrentUserOrThrow();
+            boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+            if (!isAdmin && !viewer.getId().equals(userId)) {
+                throw new AccessDeniedException("This profile is private");
+            }
+        }
+        return target;
     }
 
     public Page<User> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return userRepository.findAll(pageable);
+        User viewer = getCurrentUserOrThrow();
+        boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+        if (isAdmin) {
+            return userRepository.findAll(pageable);
+        }
+        return userRepository.findVisibleToViewer(viewer.getId(), pageable);
     }
 
     public User updateUser(Long userId, UserRegistrationDto request) {
@@ -58,7 +72,10 @@ public class UserService {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         user.setBio(request.getBio());
-        
+        if (request.getIsProfilePublic() != null) {
+            user.setProfilePublic(request.getIsProfilePublic());
+        }
+
         return userRepository.save(user);
     }
 
@@ -72,7 +89,12 @@ public class UserService {
     }
 
     public List<User> searchUsersByName(String userName) {
-        return userRepository.findByUserNameContainingIgnoreCase(userName);
+        User viewer = getCurrentUserOrThrow();
+        boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+        return userRepository.findByUserNameContainingIgnoreCase(userName)
+                .stream()
+                .filter(u -> u.isProfilePublic() || isAdmin || u.getId().equals(viewer.getId()))
+                .collect(Collectors.toList());
     }
 
     public User getCurrentUser() {

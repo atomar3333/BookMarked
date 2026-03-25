@@ -61,18 +61,18 @@ public class BookListService {
     }
 
     public Page<BookListDto> getBooksInList(Long listId, int page, int size) {
-        if (!listsRepository.existsById(listId)) {
-            throw new RuntimeException("List not found with ID: " + listId);
-        }
+        Lists list = listsRepository.findById(listId)
+                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+        assertListVisibleToCurrentViewer(list);
 
         Pageable pageable = PageRequest.of(page, size);
         return bookListRepository.findByListId(listId, pageable).map(this::mapToDto);
     }
 
     public long getBookCountInList(Long listId) {
-        if (!listsRepository.existsById(listId)) {
-            throw new RuntimeException("List not found with ID: " + listId);
-        }
+        Lists list = listsRepository.findById(listId)
+                .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
+        assertListVisibleToCurrentViewer(list);
 
         return bookListRepository.countByListId(listId);
     }
@@ -84,6 +84,16 @@ public class BookListService {
         dto.setBookId(bookList.getBook().getId());
         dto.setAddedAt(bookList.getAddedAt());
         return dto;
+    }
+
+    private void assertListVisibleToCurrentViewer(Lists list) {
+        if (!list.isPublic()) {
+            User viewer = getCurrentUserOrThrow();
+            boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
+            if (!isAdmin && !viewer.getId().equals(list.getUser().getId())) {
+                throw new AccessDeniedException("This list is private");
+            }
+        }
     }
 
     private User getCurrentUserOrThrow() {

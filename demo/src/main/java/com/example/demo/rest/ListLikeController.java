@@ -3,6 +3,7 @@ package com.example.demo.rest;
 import com.example.demo.dto.LikeDto;
 import com.example.demo.dto.LikeStatsDto;
 import com.example.demo.service.ListLikeService;
+import com.example.demo.service.ListsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class ListLikeController {
 
     private final ListLikeService listLikeService;
+    private final ListsService listsService;
 
     @PostMapping
     public ResponseEntity<LikeDto> likeList(@PathVariable Long listId) {
@@ -50,8 +52,11 @@ public class ListLikeController {
     @GetMapping("/stats")
     public ResponseEntity<LikeStatsDto> getLikeStats(@PathVariable Long listId) {
         try {
+            listsService.assertListVisibility(listId);
             LikeStatsDto stats = listLikeService.getListLikeStats(listId);
             return ResponseEntity.ok(stats);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getListsByUser } from '../api/lists'
 import { getBookById, getCurrentUser } from '../api/search'
 import { getReadingStatusesByUser, getReviewsByUser } from '../api/userPage'
+import { updateCurrentUserProfile } from '../api/profile'
 import BookTile from '../features/books/BookTile'
 import ListTile from '../features/lists/ListTile'
 import type { BookTileItem } from '../types/books'
@@ -42,6 +43,8 @@ function ProfilePage() {
   const [reviewsPage, setReviewsPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [profilePublic, setProfilePublic] = useState(true)
+  const [savingPrivacy, setSavingPrivacy] = useState(false)
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -51,6 +54,7 @@ function ProfilePage() {
       try {
         const currentUser = await getCurrentUser()
         setUser(currentUser)
+        setProfilePublic(currentUser.isProfilePublic ?? true)
 
         const [statusesResult, listsResult, reviewsResult] = await Promise.allSettled([
           getReadingStatusesByUser(currentUser.id),
@@ -142,6 +146,25 @@ function ProfilePage() {
     })
   }, [reviews.length])
 
+  const handlePrivacyToggle = async () => {
+    if (!user) return
+    const newValue = !profilePublic
+    setSavingPrivacy(true)
+    setProfilePublic(newValue)
+    try {
+      await updateCurrentUserProfile(user.id, {
+        userName: user.userName,
+        emailId: user.emailId,
+        bio: user.bio,
+        isProfilePublic: newValue,
+      })
+    } catch {
+      setProfilePublic(!newValue)
+    } finally {
+      setSavingPrivacy(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="d-flex align-items-center gap-2">
@@ -160,13 +183,23 @@ function ProfilePage() {
       <section className="mb-4">
         <div className="d-flex justify-content-between align-items-center mb-2">
           <h2 className="mb-0">{user?.userName ?? 'User Page'}</h2>
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => navigate('/profile/edit')}
-          >
-            Edit Profile
-          </Button>
+          <div className="d-flex gap-2">
+            <Button
+              variant={profilePublic ? 'outline-secondary' : 'secondary'}
+              size="sm"
+              disabled={savingPrivacy || !user}
+              onClick={handlePrivacyToggle}
+            >
+              {savingPrivacy ? 'Saving...' : profilePublic ? '🌐 Public' : '🔒 Private'}
+            </Button>
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={() => navigate('/profile/edit')}
+            >
+              Edit Profile
+            </Button>
+          </div>
         </div>
         <p className="text-muted mb-0">Track what you read, save what you want next, and revisit your reviews.</p>
       </section>

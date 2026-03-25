@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.example.demo.entity.Role;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -41,6 +42,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role = Role.ROLE_USER;
+
+    @Column(name = "is_profile_public", nullable = false)
+    private boolean isProfilePublic = true;
 
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private List<Review> reviews;
@@ -119,6 +123,15 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    @JsonProperty("isProfilePublic")
+    public boolean isProfilePublic() {
+        return isProfilePublic;
+    }
+
+    public void setProfilePublic(boolean profilePublic) {
+        isProfilePublic = profilePublic;
     }
 
 //    public List<Review> getReviews() {

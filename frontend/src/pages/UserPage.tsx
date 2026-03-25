@@ -56,6 +56,7 @@ function UserPage() {
   const [reviewsPage, setReviewsPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPrivateProfile, setIsPrivateProfile] = useState(false)
 
   useEffect(() => {
     const parsedUserId = Number(userId)
@@ -69,6 +70,7 @@ function UserPage() {
       setLoading(true)
       setError(null)
       setFollowError(null)
+      setIsPrivateProfile(false)
 
       try {
         const [
@@ -90,6 +92,10 @@ function UserPage() {
         ])
 
         if (userResult.status === 'rejected') {
+          if (userResult.reason instanceof Error && userResult.reason.message === 'PRIVATE_PROFILE') {
+            setIsPrivateProfile(true)
+            return
+          }
           throw userResult.reason
         }
 
@@ -223,6 +229,14 @@ function UserPage() {
 
   if (error) {
     return <Alert variant="danger">{error}</Alert>
+  }
+
+  if (isPrivateProfile) {
+    return (
+      <Alert variant="secondary" className="mt-3">
+        <strong>Private Profile</strong> — This user has set their profile to private.
+      </Alert>
+    )
   }
 
   if (!user) {

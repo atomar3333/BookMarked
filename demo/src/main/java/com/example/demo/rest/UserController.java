@@ -28,6 +28,8 @@ public class UserController {
         try {
             User user = userService.getUserById(userId);
             return ResponseEntity.ok(user);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
