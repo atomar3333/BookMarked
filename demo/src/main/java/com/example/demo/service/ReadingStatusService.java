@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +27,7 @@ public class ReadingStatusService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
 
+    @Transactional
     public ReadingStatusDto createReadingStatus(ReadingStatusDto request) {
         assertSelfOrAdmin(request.getUserId());
 
@@ -50,16 +52,19 @@ public class ReadingStatusService {
         return mapToDto(readingStatusRepository.save(readingStatus));
     }
 
+    @Transactional(readOnly = true)
     public ReadingStatusDto getReadingStatusById(Long statusId) {
         return mapToDto(readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId)));
     }
 
+    @Transactional(readOnly = true)
     public Page<ReadingStatusDto> getAllReadingStatuses(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return readingStatusRepository.findAll(pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public List<ReadingStatusDto> getReadingStatusesByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -68,6 +73,7 @@ public class ReadingStatusService {
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ReadingStatusDto> getReadingStatusesByBook(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
@@ -76,6 +82,7 @@ public class ReadingStatusService {
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ReadingStatusDto getReadingStatusForUserBook(Long userId, Long bookId) {
         ReadingStatus status = readingStatusRepository.findByUserIdAndBookId(userId, bookId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found for user: " + userId + " and book: " + bookId));
@@ -83,6 +90,7 @@ public class ReadingStatusService {
     }
 
     //pending update option for changing start and finish date
+    @Transactional
     public ReadingStatusDto updateReadingStatus(Long statusId, ReadingStatusDto request) {
         ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));
@@ -110,6 +118,7 @@ public class ReadingStatusService {
         return mapToDto(readingStatusRepository.save(readingStatus));
     }
 
+    @Transactional
     public void deleteReadingStatus(Long statusId) {
         ReadingStatus readingStatus = readingStatusRepository.findById(statusId)
                 .orElseThrow(() -> new RuntimeException("Reading status not found with ID: " + statusId));

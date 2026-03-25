@@ -18,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class BookListService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public BookListDto addBookToList(Long listId, Long bookId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
@@ -49,6 +51,7 @@ public class BookListService {
         return mapToDto(bookListRepository.save(bookList));
     }
 
+    @Transactional
     public void removeBookFromList(Long listId, Long bookId) {
         Lists list = listsRepository.findById(listId)
             .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
@@ -60,6 +63,7 @@ public class BookListService {
         bookListRepository.delete(bookList);
     }
 
+    @Transactional(readOnly = true)
     public Page<BookListDto> getBooksInList(Long listId, int page, int size) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
@@ -69,6 +73,7 @@ public class BookListService {
         return bookListRepository.findByListId(listId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public long getBookCountInList(Long listId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));

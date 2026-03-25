@@ -61,6 +61,7 @@ public class ReviewLikeService {
         reviewLikeRepository.delete(like);
     }
 
+    @Transactional(readOnly = true)
     public Page<LikeDto> getReviewLikes(Long reviewId, int page, int size) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new RuntimeException("Review not found with ID: " + reviewId);
@@ -69,6 +70,7 @@ public class ReviewLikeService {
         return reviewLikeRepository.findByReviewId(reviewId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public LikeStatsDto getReviewLikeStats(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new RuntimeException("Review not found with ID: " + reviewId);
@@ -85,6 +87,7 @@ public class ReviewLikeService {
         return new LikeStatsDto(likeCount, likedByCurrentUser);
     }
 
+    @Transactional(readOnly = true)
     public boolean hasUserLikedReview(Long userId, Long reviewId) {
         return reviewLikeRepository.existsByUserIdAndReviewId(userId, reviewId);
     }

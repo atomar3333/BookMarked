@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.entity.User;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public User createUser(UserRegistrationDto request) {
         if (userRepository.findByEmailId(request.getEmailId()).isPresent()) {
             throw new RuntimeException("Email already registered");
@@ -37,6 +39,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public User getUserById(Long userId) {
         User target = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
@@ -50,6 +53,7 @@ public class UserService {
         return target;
     }
 
+    @Transactional(readOnly = true)
     public Page<User> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         User viewer = getCurrentUserOrThrow();
@@ -60,6 +64,7 @@ public class UserService {
         return userRepository.findVisibleToViewer(viewer.getId(), pageable);
     }
 
+    @Transactional
     public User updateUser(Long userId, UserRegistrationDto request) {
         assertSelfOrAdmin(userId);
 
@@ -79,6 +84,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         assertSelfOrAdmin(userId);
 
@@ -88,6 +94,7 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<User> searchUsersByName(String userName) {
         User viewer = getCurrentUserOrThrow();
         boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
@@ -97,6 +104,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public User getCurrentUser() {
         return getCurrentUserOrThrow();
     }

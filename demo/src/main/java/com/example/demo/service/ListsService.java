@@ -16,6 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ public class ListsService {
     private final ListsRepository listsRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public ListDto createList(CreateListDto request) {
         User currentUser = getCurrentUserOrThrow();
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
@@ -54,6 +56,7 @@ public class ListsService {
         return mapToDto(listsRepository.save(list));
     }
 
+    @Transactional(readOnly = true)
     public ListDto getListById(Long listId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
@@ -61,6 +64,7 @@ public class ListsService {
         return mapToDto(list);
     }
 
+    @Transactional(readOnly = true)
     public Page<ListDto> getAllLists(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         User viewer = getCurrentUserOrThrow();
@@ -70,6 +74,7 @@ public class ListsService {
         return listsRepository.findVisibleToViewer(viewer.getId(), pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public Page<ListDto> getListsByUser(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -84,6 +89,7 @@ public class ListsService {
         return listsRepository.findByUserIdAndIsPublicTrue(userId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public List<ListDto> searchLists(String query) {
         if (query == null || query.isBlank()) {
             throw new RuntimeException("Search query cannot be empty");
@@ -103,6 +109,7 @@ public class ListsService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public ListDto updateList(Long listId, UpdateListDto request) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
@@ -127,6 +134,7 @@ public class ListsService {
         return mapToDto(listsRepository.save(list));
     }
 
+    @Transactional
     public void deleteList(Long listId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));

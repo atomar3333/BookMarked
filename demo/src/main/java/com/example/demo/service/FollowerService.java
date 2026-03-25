@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -24,6 +25,7 @@ public class FollowerService {
     private final FollowerRepository followerRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public FollowerDto follow(Long followerId, Long followingId) {
         assertSelfOrAdmin(followerId);
 
@@ -47,6 +49,7 @@ public class FollowerService {
         return mapToDto(followerRepository.save(follow));
     }
 
+    @Transactional
     public void unfollow(Long followerId, Long followingId) {
         assertSelfOrAdmin(followerId);
 
@@ -56,6 +59,7 @@ public class FollowerService {
     }
 
     // Get all users who follow userId
+    @Transactional(readOnly = true)
     public Page<FollowerDto> getFollowers(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -65,6 +69,7 @@ public class FollowerService {
     }
 
     // Get all users that userId is following
+    @Transactional(readOnly = true)
     public Page<FollowerDto> getFollowing(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -73,6 +78,7 @@ public class FollowerService {
         return followerRepository.findByFollowerId(userId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getFollowerCount(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -80,6 +86,7 @@ public class FollowerService {
         return Map.of("userId", userId, "followerCount", followerRepository.countByFollowingId(userId));
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getFollowingCount(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);

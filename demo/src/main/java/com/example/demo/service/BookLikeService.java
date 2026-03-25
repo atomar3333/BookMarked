@@ -65,6 +65,7 @@ public class BookLikeService {
         bookLikeRepository.delete(like);
     }
 
+    @Transactional(readOnly = true)
     public Page<LikeDto> getBookLikes(Long bookId, int page, int size) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
@@ -73,6 +74,7 @@ public class BookLikeService {
         return bookLikeRepository.findByBookId(bookId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public LikeStatsDto getBookLikeStats(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
@@ -89,6 +91,7 @@ public class BookLikeService {
         return new LikeStatsDto(likeCount, likedByCurrentUser);
     }
 
+    @Transactional(readOnly = true)
     public boolean hasUserLikedBook(Long userId, Long bookId) {
         return bookLikeRepository.existsByUserIdAndBookId(userId, bookId);
     }

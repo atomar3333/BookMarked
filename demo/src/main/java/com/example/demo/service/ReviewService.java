@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
 
+    @Transactional
     public ReviewDto createReview(ReviewDto request) {
         assertSelfOrAdmin(request.getUserId());
 
@@ -55,15 +57,18 @@ public class ReviewService {
         return mapToDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public ReviewDto getReviewById(Long reviewId) {
         return mapToDto(reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId)));
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewDto> getAllReviews() {
         return reviewRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsByBook(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
@@ -71,6 +76,7 @@ public class ReviewService {
         return reviewRepository.findByBookId(bookId).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
@@ -78,6 +84,7 @@ public class ReviewService {
         return reviewRepository.findByUserId(userId).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Transactional
     public ReviewDto updateReview(Long reviewId, ReviewDto request) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
@@ -99,6 +106,7 @@ public class ReviewService {
         return mapToDto(updated);
     }
 
+    @Transactional
     public void deleteReview(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
@@ -107,6 +115,7 @@ public class ReviewService {
         reviewRepository.deleteById(reviewId);
     }
 
+    @Transactional(readOnly = true)
     public Double getAverageRatingByBook(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);

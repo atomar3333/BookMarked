@@ -61,6 +61,7 @@ public class ListLikeService {
         listLikeRepository.delete(like);
     }
 
+    @Transactional(readOnly = true)
     public Page<LikeDto> getListLikes(Long listId, int page, int size) {
         if (!listsRepository.existsById(listId)) {
             throw new RuntimeException("List not found with ID: " + listId);
@@ -69,6 +70,7 @@ public class ListLikeService {
         return listLikeRepository.findByListId(listId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public LikeStatsDto getListLikeStats(Long listId) {
         if (!listsRepository.existsById(listId)) {
             throw new RuntimeException("List not found with ID: " + listId);
@@ -85,6 +87,7 @@ public class ListLikeService {
         return new LikeStatsDto(likeCount, likedByCurrentUser);
     }
 
+    @Transactional(readOnly = true)
     public boolean hasUserLikedList(Long userId, Long listId) {
         return listLikeRepository.existsByUserIdAndListId(userId, listId);
     }
