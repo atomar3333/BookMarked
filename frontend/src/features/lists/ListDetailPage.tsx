@@ -168,9 +168,11 @@ function ListDetailPage() {
             <span>{likingList ? 'Liking...' : 'Like'}</span>
             {listLikeCount > 0 && <span className="small">({listLikeCount})</span>}
           </Button>
-          <Link to={`/lists/${list.id}/edit`} className="btn btn-outline-dark btn-sm">
-            Edit This List
-          </Link>
+          {currentUser && currentUser.id === list.userId && (
+            <Link to={`/lists/${list.id}/edit`} className="btn btn-outline-dark btn-sm">
+              Edit This List
+            </Link>
+          )}
         </div>
         {likeError && <Alert variant="danger" className="mt-2 mb-0">{likeError}</Alert>}
       </section>
