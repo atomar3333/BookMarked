@@ -12,6 +12,7 @@ import AuthorDetailPage from '../pages/AuthorDetailPage'
 import AuthorsPage from '../pages/AuthorsPage'
 import BookDetailPage from '../pages/BookDetailPage'
 import EditProfilePage from '../pages/EditProfilePage'
+import GenreDetailPage from '../pages/GenreDetailPage'
 import HomePage from '../pages/HomePage'
 import MembersPage from '../pages/MembersPage'
 import ProfilePage from '../pages/ProfilePage'
@@ -33,6 +34,7 @@ function AppRoutes() {
         <Route path="/members" element={<MembersPage />} />
         <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/authors/:authorId" element={<AuthorDetailPage />} />
+        <Route path="/genres/:genreId" element={<GenreDetailPage />} />
         <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />

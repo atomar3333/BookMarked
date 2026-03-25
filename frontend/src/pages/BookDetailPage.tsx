@@ -566,6 +566,19 @@ function BookDetailPage() {
               )}
             </p>
 
+            {book.genres && book.genres.length > 0 && (
+              <div className="mb-3 d-flex align-items-center flex-wrap gap-2">
+                <span className="text-muted small">Genres:</span>
+                {book.genres.map((genre) => (
+                  <Badge key={genre.id} bg="secondary" pill>
+                    <Link to={`/genres/${genre.id}`} className="text-white text-decoration-none">
+                      {genre.genreName}
+                    </Link>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
             {currentUser && (
               <div className="mb-3">
                 <ReadingStatusActions

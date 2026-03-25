@@ -49,6 +49,14 @@ public class Book {
     )
     private List<Author> authors = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+        name = "book_genre",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres = new ArrayList<>();
+
    // @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     //private List<com.example.demo.entity.Review> reviews;
 

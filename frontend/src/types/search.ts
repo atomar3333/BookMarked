@@ -18,6 +18,7 @@ export interface BookDetail {
   title: string
   author: string
   authors?: Array<{ id: number; authorName: string }>
+  genres?: Array<{ id: number; genreName: string }>
   isbn?: string
   coverImageUrl?: string
   description?: string
