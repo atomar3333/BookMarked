@@ -78,7 +78,8 @@ public class ListLikeController {
     @GetMapping("/me")
     public ResponseEntity<Map<String, Boolean>> hasUserLiked(@PathVariable Long listId) {
         try {
-            boolean liked = listLikeService.hasUserLikedList(1L, listId); // TODO: Get current user ID
+            LikeStatsDto stats = listLikeService.getListLikeStats(listId);
+            boolean liked = Boolean.TRUE.equals(stats.getLikedByCurrentUser());
             Map<String, Boolean> response = new HashMap<>();
             response.put("liked", liked);
             return ResponseEntity.ok(response);

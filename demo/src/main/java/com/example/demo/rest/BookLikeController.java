@@ -73,7 +73,8 @@ public class BookLikeController {
     @GetMapping("/me")
     public ResponseEntity<Map<String, Boolean>> hasUserLiked(@PathVariable Long bookId) {
         try {
-            boolean liked = bookLikeService.hasUserLikedBook(1L, bookId); // TODO: Get current user ID
+            LikeStatsDto stats = bookLikeService.getBookLikeStats(bookId);
+            boolean liked = Boolean.TRUE.equals(stats.getLikedByCurrentUser());
             Map<String, Boolean> response = new HashMap<>();
             response.put("liked", liked);
             return ResponseEntity.ok(response);
