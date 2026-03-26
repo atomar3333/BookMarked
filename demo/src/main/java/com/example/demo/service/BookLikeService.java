@@ -2,10 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.LikeDto;
 import com.example.demo.dto.LikeStatsDto;
-import com.example.demo.entity.Book;
-import com.example.demo.entity.BookLike;
-import com.example.demo.entity.Role;
-import com.example.demo.entity.User;
+import com.example.demo.entity.*;
 import com.example.demo.repository.BookLikeRepository;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.UserRepository;
@@ -30,6 +27,7 @@ public class BookLikeService {
     private final BookLikeRepository bookLikeRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public LikeDto likeBook(Long bookId) {
@@ -50,6 +48,10 @@ public class BookLikeService {
 
         try {
             BookLike saved = bookLikeRepository.save(like);
+            activityService.record(user, ActivityType.BOOK_LIKED, book.getId(), Map.of(
+                    "bookId", book.getId(),
+                    "bookTitle", book.getTitle()
+            ));
             return mapToDto(saved);
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("User has already liked this book");

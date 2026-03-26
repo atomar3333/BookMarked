@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.LikeDto;
 import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.ReviewLike;
 import com.example.demo.entity.User;
@@ -19,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewLikeService {
@@ -26,6 +29,7 @@ public class ReviewLikeService {
     private final ReviewLikeRepository reviewLikeRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public LikeDto likeReview(Long reviewId) {
@@ -46,6 +50,10 @@ public class ReviewLikeService {
 
         try {
             ReviewLike saved = reviewLikeRepository.save(like);
+            activityService.record(user, ActivityType.REVIEW_LIKED, review.getId(), Map.of(
+                    "bookId", review.getBook().getId(),
+                    "bookTitle", review.getBook().getTitle()
+            ));
             return mapToDto(saved);
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("User has already liked this review");

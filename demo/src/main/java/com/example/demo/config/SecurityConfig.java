@@ -57,6 +57,8 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/genres/**").hasAuthority("ROLE_ADMIN")
                         // Admin-only: delete or manage other users
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        // Activities: all endpoints require authentication (privacy enforced in service layer)
+                        .requestMatchers("/api/activities/**").authenticated()
                         // Everything else: any authenticated user
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

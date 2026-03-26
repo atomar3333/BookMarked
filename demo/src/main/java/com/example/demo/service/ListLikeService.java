@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.LikeDto;
 import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.ListLike;
 import com.example.demo.entity.Lists;
 import com.example.demo.entity.User;
@@ -19,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class ListLikeService {
@@ -26,6 +29,7 @@ public class ListLikeService {
     private final ListLikeRepository listLikeRepository;
     private final UserRepository userRepository;
     private final ListsRepository listsRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public LikeDto likeList(Long listId) {
@@ -46,6 +50,9 @@ public class ListLikeService {
 
         try {
             ListLike saved = listLikeRepository.save(like);
+            activityService.record(user, ActivityType.LIST_LIKED, list.getId(), Map.of(
+                    "listTitle", list.getTitle()
+            ));
             return mapToDto(saved);
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("User has already liked this list");

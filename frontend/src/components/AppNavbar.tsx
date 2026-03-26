@@ -41,6 +41,9 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/search">
               Search
             </Nav.Link>
+            <Nav.Link as={Link} to="/activity">
+              Activity
+            </Nav.Link>
             <Nav.Link as={Link} to="/profile">
               My Page
             </Nav.Link>

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.ReviewDto;
+import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.Review;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +32,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public ReviewDto createReview(ReviewDto request) {
@@ -54,6 +57,10 @@ public class ReviewService {
         review.setCreatedAt(LocalDateTime.now());
 
         Review saved = reviewRepository.save(review);
+        activityService.record(user, ActivityType.REVIEW_CREATED, saved.getId(), Map.of(
+            "bookId", book.getId(),
+            "bookTitle", book.getTitle()
+        ));
         return mapToDto(saved);
     }
 

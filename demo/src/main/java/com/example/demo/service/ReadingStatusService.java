@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +28,7 @@ public class ReadingStatusService {
     private final ReadingStatusRepository readingStatusRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public ReadingStatusDto createReadingStatus(ReadingStatusDto request) {
@@ -43,13 +46,17 @@ public class ReadingStatusService {
         ReadingStatus readingStatus = readingStatusRepository
                 .findByUserIdAndBookId(request.getUserId(), request.getBookId())
                 .orElseGet(ReadingStatus::new);
+        ReadingStatusEnum previousStatus = readingStatus.getCurrentStatus();
 
         readingStatus.setUser(user);
         readingStatus.setBook(book);
 
         applyStatusRules(readingStatus, request.getCurrentStatus(), request.getStartedAt(), request.getFinishedAt());
 
-        return mapToDto(readingStatusRepository.save(readingStatus));
+        ReadingStatus saved = readingStatusRepository.save(readingStatus);
+        activityService.record(user, ActivityType.READING_STATUS_UPDATED, saved.getId(), buildReadingStatusMetadata(book, previousStatus, saved.getCurrentStatus()));
+
+        return mapToDto(saved);
     }
 
     @Transactional(readOnly = true)
@@ -113,9 +120,14 @@ public class ReadingStatusService {
                 ? request.getFinishedAt()
                 : readingStatus.getFinishedAt();
 
+        ReadingStatusEnum previousStatus = readingStatus.getCurrentStatus();
+
         applyStatusRules(readingStatus, targetStatus, nextStartedAt, nextFinishedAt);
 
-        return mapToDto(readingStatusRepository.save(readingStatus));
+        ReadingStatus saved = readingStatusRepository.save(readingStatus);
+        activityService.record(saved.getUser(), ActivityType.READING_STATUS_UPDATED, saved.getId(), buildReadingStatusMetadata(saved.getBook(), previousStatus, saved.getCurrentStatus()));
+
+        return mapToDto(saved);
     }
 
     @Transactional
@@ -176,6 +188,15 @@ public class ReadingStatusService {
         readingStatus.setCurrentStatus(targetStatus);
         readingStatus.setStartedAt(nextStartedAt);
         readingStatus.setFinishedAt(nextFinishedAt);
+    }
+
+    private Map<String, Object> buildReadingStatusMetadata(Book book, ReadingStatusEnum oldStatus, ReadingStatusEnum newStatus) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("bookId", book.getId());
+        metadata.put("bookTitle", book.getTitle());
+        metadata.put("oldStatus", oldStatus != null ? oldStatus.name() : null);
+        metadata.put("newStatus", newStatus != null ? newStatus.name() : null);
+        return metadata;
     }
 
     private User getCurrentUserOrThrow() {

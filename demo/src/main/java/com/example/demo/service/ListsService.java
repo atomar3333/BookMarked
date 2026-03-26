@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.CreateListDto;
 import com.example.demo.dto.ListDto;
 import com.example.demo.dto.UpdateListDto;
+import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Lists;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +29,7 @@ public class ListsService {
 
     private final ListsRepository listsRepository;
     private final UserRepository userRepository;
+    private final ActivityService activityService;
 
     @Transactional
     public ListDto createList(CreateListDto request) {
@@ -53,7 +56,12 @@ public class ListsService {
         list.setDescription(request.getDescription());
         list.setPublic(request.isPublic());
 
-        return mapToDto(listsRepository.save(list));
+        Lists saved = listsRepository.save(list);
+        activityService.record(user, ActivityType.LIST_CREATED, saved.getId(), Map.of(
+            "listTitle", saved.getTitle()
+        ));
+
+        return mapToDto(saved);
     }
 
     @Transactional(readOnly = true)
