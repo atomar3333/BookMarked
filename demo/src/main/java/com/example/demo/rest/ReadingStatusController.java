@@ -1,7 +1,10 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.ReadingStatusDto;
+import com.example.demo.dto.request.CreateReadingStatusRequestDto;
+import com.example.demo.dto.request.UpdateReadingStatusRequestDto;
+import com.example.demo.dto.response.ReadingStatusResponseDto;
 import com.example.demo.service.ReadingStatusService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,7 +21,8 @@ public class ReadingStatusController {
     private final ReadingStatusService readingStatusService;
 
     @PostMapping
-    public ResponseEntity<ReadingStatusDto> createReadingStatus(@RequestBody ReadingStatusDto payload) {
+    public ResponseEntity<ReadingStatusResponseDto> createReadingStatus(
+            @Valid @RequestBody CreateReadingStatusRequestDto payload) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(readingStatusService.createReadingStatus(payload));
         } catch (AccessDeniedException e) {
@@ -29,7 +33,7 @@ public class ReadingStatusController {
     }
 
     @GetMapping("/{statusId}")
-    public ResponseEntity<ReadingStatusDto> getReadingStatusById(@PathVariable Long statusId) {
+    public ResponseEntity<ReadingStatusResponseDto> getReadingStatusById(@PathVariable Long statusId) {
         try {
             return ResponseEntity.ok(readingStatusService.getReadingStatusById(statusId));
         } catch (RuntimeException e) {
@@ -38,14 +42,14 @@ public class ReadingStatusController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<ReadingStatusDto>> getAllReadingStatuses(
+    public ResponseEntity<Page<ReadingStatusResponseDto>> getAllReadingStatuses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(readingStatusService.getAllReadingStatuses(page, size));
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<ReadingStatusDto>> getReadingStatusesByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<ReadingStatusResponseDto>> getReadingStatusesByUser(@PathVariable Long userId) {
         try {
             return ResponseEntity.ok(readingStatusService.getReadingStatusesByUser(userId));
         } catch (RuntimeException e) {
@@ -54,7 +58,7 @@ public class ReadingStatusController {
     }
 
     @GetMapping("/books/{bookId}")
-    public ResponseEntity<List<ReadingStatusDto>> getReadingStatusesByBook(@PathVariable Long bookId) {
+    public ResponseEntity<List<ReadingStatusResponseDto>> getReadingStatusesByBook(@PathVariable Long bookId) {
         try {
             return ResponseEntity.ok(readingStatusService.getReadingStatusesByBook(bookId));
         } catch (RuntimeException e) {
@@ -63,7 +67,7 @@ public class ReadingStatusController {
     }
 
     @GetMapping("/users/{userId}/books/{bookId}")
-    public ResponseEntity<ReadingStatusDto> getReadingStatusForUserBook(
+    public ResponseEntity<ReadingStatusResponseDto> getReadingStatusForUserBook(
             @PathVariable Long userId,
             @PathVariable Long bookId) {
         try {
@@ -74,9 +78,9 @@ public class ReadingStatusController {
     }
 
     @PutMapping("/{statusId}")
-    public ResponseEntity<ReadingStatusDto> updateReadingStatus(
+    public ResponseEntity<ReadingStatusResponseDto> updateReadingStatus(
             @PathVariable Long statusId,
-            @RequestBody ReadingStatusDto payload) {
+            @Valid @RequestBody UpdateReadingStatusRequestDto payload) {
         try {
             return ResponseEntity.ok(readingStatusService.updateReadingStatus(statusId, payload));
         } catch (AccessDeniedException e) {

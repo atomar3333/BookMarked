@@ -1,11 +1,13 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.AuthResponseDto;
-import com.example.demo.dto.LoginRequestDto;
 import com.example.demo.dto.UserRegistrationDto;
+import com.example.demo.dto.request.LoginRequestDto;
+import com.example.demo.dto.request.RegisterRequestDto;
+import com.example.demo.dto.response.AuthResponseDto;
 import com.example.demo.service.CustomUserDetailsService;
 import com.example.demo.service.JwtService;
 import com.example.demo.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,9 +28,16 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserRegistrationDto registrationDto) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequestDto registrationDto) {
         try {
-            userService.createUser(registrationDto);
+            UserRegistrationDto request = new UserRegistrationDto();
+            request.setUserName(registrationDto.getUserName());
+            request.setEmailId(registrationDto.getEmailId());
+            request.setPassword(registrationDto.getPassword());
+            request.setBio(registrationDto.getBio());
+            request.setIsProfilePublic(registrationDto.getIsProfilePublic());
+
+            userService.createUser(request);
             return new ResponseEntity<>("User registered successfully!", HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -36,7 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmailId(), request.getPassword())
