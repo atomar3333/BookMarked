@@ -65,13 +65,6 @@ public class ReadingStatusDto {
         if (finishDate != null && this.startedAt != null && finishDate.isBefore(this.startedAt)) {
             throw new IllegalArgumentException("Finish date cannot be before start date");
         }
-
-        // Only allow finishedAt to be set if status is COMPLETED or ON_HOLD
-        if (finishDate != null && this.currentStatus != ReadingStatusEnum.CURRENTLY_READING ) {
-            throw new IllegalArgumentException(
-                    "finishedAt can only be set for COMPLETED");
-        }
-
         this.finishedAt = finishDate;
     }
 
