@@ -1,6 +1,5 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.UserRegistrationDto;
 import com.example.demo.dto.request.LoginRequestDto;
 import com.example.demo.dto.request.RegisterRequestDto;
 import com.example.demo.dto.response.AuthResponseDto;
@@ -30,14 +29,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequestDto registrationDto) {
         try {
-            UserRegistrationDto request = new UserRegistrationDto();
-            request.setUserName(registrationDto.getUserName());
-            request.setEmailId(registrationDto.getEmailId());
-            request.setPassword(registrationDto.getPassword());
-            request.setBio(registrationDto.getBio());
-            request.setIsProfilePublic(registrationDto.getIsProfilePublic());
-
-            userService.createUser(request);
+            userService.createUser(registrationDto);
             return new ResponseEntity<>("User registered successfully!", HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

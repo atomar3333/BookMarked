@@ -1,6 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.UserRegistrationDto;
+import com.example.demo.dto.request.CreateUserRequestDto;
+import com.example.demo.dto.request.RegisterRequestDto;
+import com.example.demo.dto.request.UpdateUserProfileRequestDto;
+import com.example.demo.dto.response.UserProfileResponseDto;
 import com.example.demo.entity.Role;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,23 +27,52 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public User createUser(UserRegistrationDto request) {
-        if (userRepository.findByEmailId(request.getEmailId()).isPresent()) {
+    public void createUser(RegisterRequestDto request) {
+        createUserInternal(
+                request.getUserName(),
+                request.getEmailId(),
+                request.getPassword(),
+                request.getBio(),
+                request.getIsProfilePublic()
+        );
+    }
+
+    @Transactional
+    public UserProfileResponseDto createUser(CreateUserRequestDto request) {
+        User saved = createUserInternal(
+                request.getUserName(),
+                request.getEmailId(),
+                request.getPassword(),
+                request.getBio(),
+                request.getIsProfilePublic()
+        );
+        return mapToUserProfileResponse(saved);
+    }
+
+    private User createUserInternal(
+            String userName,
+            String emailId,
+            String rawPassword,
+            String bio,
+            Boolean isProfilePublic
+    ) {
+        if (userRepository.findByEmailId(emailId).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
 
         User user = new User();
-        user.setUserName(request.getUserName());
-        user.setEmailId(request.getEmailId());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setBio(request.getBio());
+        user.setUserName(userName);
+        user.setEmailId(emailId);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setBio(bio);
+        user.setProfilePublic(isProfilePublic == null || isProfilePublic);
         user.setRole(Role.ROLE_USER);
 
         return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
-    public User getUserById(Long userId) {
+    public UserProfileResponseDto getUserById(Long userId) {
         User target = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         if (!target.isProfilePublic()) {
@@ -50,38 +82,44 @@ public class UserService {
                 throw new AccessDeniedException("This profile is private");
             }
         }
-        return target;
+        return mapToUserProfileResponse(target);
     }
 
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(int page, int size) {
+    public Page<UserProfileResponseDto> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         User viewer = getCurrentUserOrThrow();
         boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
         if (isAdmin) {
-            return userRepository.findAll(pageable);
+            return userRepository.findAll(pageable).map(this::mapToUserProfileResponse);
         }
-        return userRepository.findVisibleToViewer(viewer.getId(), pageable);
+        return userRepository.findVisibleToViewer(viewer.getId(), pageable).map(this::mapToUserProfileResponse);
     }
 
     @Transactional
-    public User updateUser(Long userId, UserRegistrationDto request) {
+    public UserProfileResponseDto updateUser(Long userId, UpdateUserProfileRequestDto request) {
         assertSelfOrAdmin(userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-        
-        user.setUserName(request.getUserName());
-        user.setEmailId(request.getEmailId());
+
+        if (request.getUserName() != null && !request.getUserName().isBlank()) {
+            user.setUserName(request.getUserName());
+        }
+        if (request.getEmailId() != null && !request.getEmailId().isBlank()) {
+            user.setEmailId(request.getEmailId());
+        }
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
-        user.setBio(request.getBio());
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
         if (request.getIsProfilePublic() != null) {
             user.setProfilePublic(request.getIsProfilePublic());
         }
 
-        return userRepository.save(user);
+        return mapToUserProfileResponse(userRepository.save(user));
     }
 
     @Transactional
@@ -95,18 +133,29 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<User> searchUsersByName(String userName) {
+    public List<UserProfileResponseDto> searchUsersByName(String userName) {
         User viewer = getCurrentUserOrThrow();
         boolean isAdmin = viewer.getRole() == Role.ROLE_ADMIN;
         return userRepository.findByUserNameContainingIgnoreCase(userName)
                 .stream()
                 .filter(u -> u.isProfilePublic() || isAdmin || u.getId().equals(viewer.getId()))
+                .map(this::mapToUserProfileResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public User getCurrentUser() {
-        return getCurrentUserOrThrow();
+    public UserProfileResponseDto getCurrentUser() {
+        return mapToUserProfileResponse(getCurrentUserOrThrow());
+    }
+
+    private UserProfileResponseDto mapToUserProfileResponse(User user) {
+        UserProfileResponseDto dto = new UserProfileResponseDto();
+        dto.setId(user.getId());
+        dto.setUserName(user.getUserName());
+        dto.setEmailId(user.getEmailId());
+        dto.setBio(user.getBio());
+        dto.setProfilePublic(user.isProfilePublic());
+        return dto;
     }
 
     private User getCurrentUserOrThrow() {

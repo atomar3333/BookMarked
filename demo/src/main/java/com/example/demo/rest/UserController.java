@@ -1,8 +1,10 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.UserRegistrationDto;
-import com.example.demo.entity.User;
+import com.example.demo.dto.request.CreateUserRequestDto;
+import com.example.demo.dto.request.UpdateUserProfileRequestDto;
+import com.example.demo.dto.response.UserProfileResponseDto;
 import com.example.demo.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,14 +21,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public User registerUser(@RequestBody UserRegistrationDto request) {
+    public UserProfileResponseDto registerUser(@Valid @RequestBody CreateUserRequestDto request) {
         return userService.createUser(request);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserProfile(@PathVariable Long userId) {
+    public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable Long userId) {
         try {
-            User user = userService.getUserById(userId);
+            UserProfileResponseDto user = userService.getUserById(userId);
             return ResponseEntity.ok(user);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
@@ -36,7 +38,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUserProfile() {
+    public ResponseEntity<UserProfileResponseDto> getCurrentUserProfile() {
         try {
             return ResponseEntity.ok(userService.getCurrentUser());
         } catch (AccessDeniedException e) {
@@ -45,19 +47,19 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<User>> getAllUsers(
+    public ResponseEntity<Page<UserProfileResponseDto>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<User> users = userService.getAllUsers(page, size);
+        Page<UserProfileResponseDto> users = userService.getAllUsers(page, size);
         return ResponseEntity.ok(users);
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUserProfile(
+    public ResponseEntity<UserProfileResponseDto> updateUserProfile(
             @PathVariable Long userId,
-            @RequestBody UserRegistrationDto request) {
+            @Valid @RequestBody UpdateUserProfileRequestDto request) {
         try {
-            User updatedUser = userService.updateUser(userId, request);
+            UserProfileResponseDto updatedUser = userService.updateUser(userId, request);
             return ResponseEntity.ok(updatedUser);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
@@ -79,8 +81,8 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String userName) {
-        List<User> users = userService.searchUsersByName(userName);
+    public ResponseEntity<List<UserProfileResponseDto>> searchUsers(@RequestParam String userName) {
+        List<UserProfileResponseDto> users = userService.searchUsersByName(userName);
         return ResponseEntity.ok(users);
     }
 }
