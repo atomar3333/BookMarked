@@ -1,6 +1,6 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.FollowerDto;
+import com.example.demo.dto.response.FollowerResponseDto;
 import com.example.demo.service.FollowerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,7 +20,7 @@ public class FollowerController {
 
     // POST /api/followers/{followerId}/follow/{followingId}
     @PostMapping("/{followerId}/follow/{followingId}")
-    public ResponseEntity<FollowerDto> follow(
+    public ResponseEntity<FollowerResponseDto> follow(
             @PathVariable Long followerId,
             @PathVariable Long followingId) {
         try {
@@ -52,7 +52,7 @@ public class FollowerController {
 
     // GET /api/followers/{userId}/followers — people who follow userId
     @GetMapping("/{userId}/followers")
-    public ResponseEntity<Page<FollowerDto>> getFollowers(
+    public ResponseEntity<Page<FollowerResponseDto>> getFollowers(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -65,7 +65,7 @@ public class FollowerController {
 
     // GET /api/followers/{userId}/following — people userId is following
     @GetMapping("/{userId}/following")
-    public ResponseEntity<Page<FollowerDto>> getFollowing(
+    public ResponseEntity<Page<FollowerResponseDto>> getFollowing(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

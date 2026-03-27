@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.GenreDto;
+import com.example.demo.dto.request.CreateGenreRequestDto;
+import com.example.demo.dto.request.UpdateGenreRequestDto;
+import com.example.demo.dto.response.GenreResponseDto;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.Genre;
 import com.example.demo.repository.BookRepository;
@@ -23,7 +25,7 @@ public class GenreService {
     private final BookRepository bookRepository;
 
     @Transactional
-    public GenreDto createGenre(GenreDto request) {
+    public GenreResponseDto createGenre(CreateGenreRequestDto request) {
         if (request.getGenreName() == null || request.getGenreName().isBlank()) {
             throw new RuntimeException("Genre name cannot be empty");
         }
@@ -35,19 +37,19 @@ public class GenreService {
     }
 
     @Transactional(readOnly = true)
-    public GenreDto getGenreById(Long genreId) {
+    public GenreResponseDto getGenreById(Long genreId) {
         return mapToDto(genreRepository.findById(genreId)
                 .orElseThrow(() -> new RuntimeException("Genre not found with ID: " + genreId)));
     }
 
     @Transactional(readOnly = true)
-    public Page<GenreDto> getAllGenres(int page, int size) {
+    public Page<GenreResponseDto> getAllGenres(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return genreRepository.findAll(pageable).map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
-    public List<GenreDto> searchGenres(String name) {
+    public List<GenreResponseDto> searchGenres(String name) {
         return genreRepository.findByGenreNameContainingIgnoreCase(name)
                 .stream()
                 .map(this::mapToDto)
@@ -55,7 +57,7 @@ public class GenreService {
     }
 
     @Transactional
-    public GenreDto updateGenre(Long genreId, GenreDto request) {
+    public GenreResponseDto updateGenre(Long genreId, UpdateGenreRequestDto request) {
         Genre genre = genreRepository.findById(genreId)
                 .orElseThrow(() -> new RuntimeException("Genre not found with ID: " + genreId));
 
@@ -105,7 +107,7 @@ public class GenreService {
     }
 
     @Transactional(readOnly = true)
-    public List<GenreDto> getGenresByBook(Long bookId) {
+    public List<GenreResponseDto> getGenresByBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with ID: " + bookId));
         return book.getGenres().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -118,8 +120,8 @@ public class GenreService {
         return genre.getBooks();
     }
 
-    private GenreDto mapToDto(Genre genre) {
-        GenreDto dto = new GenreDto();
+    private GenreResponseDto mapToDto(Genre genre) {
+        GenreResponseDto dto = new GenreResponseDto();
         dto.setId(genre.getId());
         dto.setGenreName(genre.getGenreName());
         return dto;

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.AddBookDto;
+import com.example.demo.dto.request.AddBookRequestDto;
+import com.example.demo.dto.response.BookResponseDto;
 import com.example.demo.entity.Book;
 import com.example.demo.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class BookService {
     private final BookRepository bookRepository;
 
     @Transactional
-    public Book createBook(AddBookDto request) {
+    public Book createBook(AddBookRequestDto request) {
         Book book = new Book();
         book.setGoogleBooksId(request.getGoogleBooksId());
         book.setTitle(request.getTitle());
@@ -55,7 +56,7 @@ public class BookService {
     }
 
     @Transactional
-    public Book updateBook(Long bookId, AddBookDto request) {
+    public Book updateBook(Long bookId, AddBookRequestDto request) {
         Book book = getBookById(bookId);
         book.setGoogleBooksId(request.getGoogleBooksId());
         book.setTitle(request.getTitle());

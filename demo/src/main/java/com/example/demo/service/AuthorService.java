@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.AuthorDto;
+import com.example.demo.dto.request.CreateAuthorRequestDto;
+import com.example.demo.dto.request.UpdateAuthorRequestDto;
+import com.example.demo.dto.response.AuthorResponseDto;
 import com.example.demo.entity.Author;
 import com.example.demo.entity.Book;
 import com.example.demo.repository.AuthorRepository;
@@ -23,7 +25,7 @@ public class AuthorService {
     private final BookRepository bookRepository;
 
     @Transactional
-    public AuthorDto createAuthor(AuthorDto request) {
+    public AuthorResponseDto createAuthor(CreateAuthorRequestDto request) {
         if (request.getAuthorName() == null || request.getAuthorName().isBlank()) {
             throw new RuntimeException("Author name cannot be empty");
         }
@@ -37,19 +39,19 @@ public class AuthorService {
     }
 
     @Transactional(readOnly = true)
-    public AuthorDto getAuthorById(Long authorId) {
+    public AuthorResponseDto getAuthorById(Long authorId) {
         return mapToDto(authorRepository.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("Author not found with ID: " + authorId)));
     }
 
     @Transactional(readOnly = true)
-    public Page<AuthorDto> getAllAuthors(int page, int size) {
+    public Page<AuthorResponseDto> getAllAuthors(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return authorRepository.findAll(pageable).map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
-    public List<AuthorDto> searchAuthors(String name) {
+    public List<AuthorResponseDto> searchAuthors(String name) {
         return authorRepository.findByAuthorNameContainingIgnoreCase(name)
                 .stream()
                 .map(this::mapToDto)
@@ -57,7 +59,7 @@ public class AuthorService {
     }
 
     @Transactional
-    public AuthorDto updateAuthor(Long authorId, AuthorDto request) {
+    public AuthorResponseDto updateAuthor(Long authorId, UpdateAuthorRequestDto request) {
         Author author = authorRepository.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("Author not found with ID: " + authorId));
 
@@ -113,7 +115,7 @@ public class AuthorService {
     }
 
     @Transactional(readOnly = true)
-    public List<AuthorDto> getAuthorsByBook(Long bookId) {
+    public List<AuthorResponseDto> getAuthorsByBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with ID: " + bookId));
         return book.getAuthors().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -126,8 +128,8 @@ public class AuthorService {
         return author.getBooks();
     }
 
-    private AuthorDto mapToDto(Author author) {
-        AuthorDto dto = new AuthorDto();
+    private AuthorResponseDto mapToDto(Author author) {
+        AuthorResponseDto dto = new AuthorResponseDto();
         dto.setId(author.getId());
         dto.setAuthorName(author.getAuthorName());
         dto.setBio(author.getBio());

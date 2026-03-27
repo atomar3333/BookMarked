@@ -1,6 +1,6 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.ActivityDto;
+import com.example.demo.dto.response.ActivityResponseDto;
 import com.example.demo.entity.ActivityType;
 import com.example.demo.service.ActivityService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class ActivityController {
     private final ActivityService activityService;
 
     @GetMapping("/me")
-    public ResponseEntity<Page<ActivityDto>> getMyActivities(
+    public ResponseEntity<Page<ActivityResponseDto>> getMyActivities(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) ActivityType type) {
@@ -30,7 +30,7 @@ public class ActivityController {
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<Page<ActivityDto>> getUserActivities(
+    public ResponseEntity<Page<ActivityResponseDto>> getUserActivities(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -45,7 +45,7 @@ public class ActivityController {
     }
 
     @GetMapping("/feed")
-    public ResponseEntity<Page<ActivityDto>> getFeed(
+    public ResponseEntity<Page<ActivityResponseDto>> getFeed(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) ActivityType type) {

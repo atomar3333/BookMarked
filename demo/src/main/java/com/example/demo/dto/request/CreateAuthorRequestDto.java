@@ -1,16 +1,19 @@
-package com.example.demo.dto;
+package com.example.demo.dto.request;
 
-public class AuthorDto {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-    private Long id;
+public class CreateAuthorRequestDto {
+    @NotBlank(message = "Author name is required")
+    @Size(min = 1, max = 255, message = "Author name must be between 1 and 255 characters")
     private String authorName;
+
+    @Size(max = 1000, message = "Bio must not exceed 1000 characters")
     private String bio;
+
     private String profilePictureUrl;
 
-    public AuthorDto() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public CreateAuthorRequestDto() {}
 
     public String getAuthorName() { return authorName; }
     public void setAuthorName(String authorName) { this.authorName = authorName; }

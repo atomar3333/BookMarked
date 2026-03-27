@@ -1,12 +1,11 @@
-package com.example.demo.dto;
+package com.example.demo.dto.response;
 
 import com.example.demo.entity.ActivityType;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 
-public class ActivityDto {
-
+public class ActivityResponseDto {
     private Long id;
     private Long userId;
     private String userName;
@@ -15,7 +14,7 @@ public class ActivityDto {
     private JsonNode metadata;
     private LocalDateTime createdAt;
 
-    public ActivityDto() {}
+    public ActivityResponseDto() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

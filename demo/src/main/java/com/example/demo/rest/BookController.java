@@ -1,8 +1,9 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.AddBookDto;
+import com.example.demo.dto.request.AddBookRequestDto;
 import com.example.demo.entity.Book;
 import com.example.demo.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping("/add-book")
-    public ResponseEntity<Book> createBook(@RequestBody AddBookDto request) {
+    public ResponseEntity<Book> createBook(@Valid @RequestBody AddBookRequestDto request) {
         Book created = bookService.createBook(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -51,7 +52,7 @@ public class BookController {
     }
 
     @PutMapping("/{bookId}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long bookId, @RequestBody AddBookDto request) {
+    public ResponseEntity<Book> updateBook(@PathVariable Long bookId, @Valid @RequestBody AddBookRequestDto request) {
         try {
             return ResponseEntity.ok(bookService.updateBook(bookId, request));
         } catch (RuntimeException e) {

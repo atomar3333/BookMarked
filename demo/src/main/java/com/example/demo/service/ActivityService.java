@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.ActivityDto;
+import com.example.demo.dto.response.ActivityResponseDto;
 import com.example.demo.entity.Activity;
 import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Follower;
@@ -52,7 +52,7 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ActivityDto> getMyActivities(int page, int size, ActivityType type) {
+    public Page<ActivityResponseDto> getMyActivities(int page, int size, ActivityType type) {
         User viewer = getCurrentUserOrThrow();
         List<Activity> activities = type == null
                 ? activityRepository.findByUserIdOrderByCreatedAtDesc(viewer.getId())
@@ -62,7 +62,7 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ActivityDto> getUserActivities(Long userId, int page, int size, ActivityType type) {
+    public Page<ActivityResponseDto> getUserActivities(Long userId, int page, int size, ActivityType type) {
         User target = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         User viewer = getCurrentUserOrThrow();
@@ -77,7 +77,7 @@ public class ActivityService {
                 ? activityRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 : activityRepository.findByUserIdAndActivityTypeOrderByCreatedAtDesc(userId, type);
 
-        List<ActivityDto> visible = activities.stream()
+        List<ActivityResponseDto> visible = activities.stream()
                 .filter(activity -> canViewActivity(activity, viewer))
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -86,7 +86,7 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ActivityDto> getFeed(int page, int size, ActivityType type) {
+    public Page<ActivityResponseDto> getFeed(int page, int size, ActivityType type) {
         User viewer = getCurrentUserOrThrow();
         List<Long> followedUserIds = followerRepository.findByFollowerId(viewer.getId(), Pageable.unpaged())
                 .stream()
@@ -103,7 +103,7 @@ public class ActivityService {
                 ? activityRepository.findByUserIdInOrderByCreatedAtDesc(followedUserIds)
                 : activityRepository.findByUserIdInAndActivityTypeOrderByCreatedAtDesc(followedUserIds, type);
 
-        List<ActivityDto> visible = activities.stream()
+        List<ActivityResponseDto> visible = activities.stream()
                 .filter(activity -> canViewActivity(activity, viewer))
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -137,8 +137,8 @@ public class ActivityService {
         return found.isPublic() || isAdmin || viewer.getId().equals(found.getUser().getId());
     }
 
-    private ActivityDto mapToDto(Activity activity) {
-        ActivityDto dto = new ActivityDto();
+    private ActivityResponseDto mapToDto(Activity activity) {
+        ActivityResponseDto dto = new ActivityResponseDto();
         dto.setId(activity.getId());
         dto.setUserId(activity.getUser().getId());
         dto.setUserName(activity.getUser().getUserName());
@@ -149,7 +149,7 @@ public class ActivityService {
         return dto;
     }
 
-    private Page<ActivityDto> paginate(List<ActivityDto> activities, int page, int size) {
+    private Page<ActivityResponseDto> paginate(List<ActivityResponseDto> activities, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         int start = (int) pageable.getOffset();
         if (start >= activities.size()) {

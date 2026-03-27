@@ -1,25 +1,26 @@
-package com.example.demo.dto;
+package com.example.demo.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
-public class AddBookDto {
-    private String googleBooksId;
+public class AddBookRequestDto {
+    @NotBlank(message = "Title is required")
+    @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     private String title;
+
+    @NotBlank(message = "Author is required")
+    @Size(min = 1, max = 255, message = "Author must be between 1 and 255 characters")
     private String author;
+
+    private String googleBooksId;
     private String isbn;
     private String coverImageUrl;
     private String description;
     private LocalDate publishDate;
 
-    public AddBookDto() {
-    }
-
-    public String getGoogleBooksId() {
-        return googleBooksId;
-    }
-
-    public void setGoogleBooksId(String googleBooksId) {
-        this.googleBooksId = googleBooksId;
+    public AddBookRequestDto() {
     }
 
     public String getTitle() {
@@ -36,6 +37,14 @@ public class AddBookDto {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public String getGoogleBooksId() {
+        return googleBooksId;
+    }
+
+    public void setGoogleBooksId(String googleBooksId) {
+        this.googleBooksId = googleBooksId;
     }
 
     public String getIsbn() {

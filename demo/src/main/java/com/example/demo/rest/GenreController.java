@@ -1,6 +1,9 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.GenreDto;
+import com.example.demo.dto.request.CreateGenreRequestDto;
+import com.example.demo.dto.request.UpdateGenreRequestDto;
+import com.example.demo.dto.response.GenreResponseDto;
+import jakarta.validation.Valid;
 import com.example.demo.entity.Book;
 import com.example.demo.service.GenreService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +22,12 @@ public class GenreController {
     private final GenreService genreService;
 
     @PostMapping
-    public ResponseEntity<GenreDto> createGenre(@RequestBody GenreDto request) {
+    public ResponseEntity<GenreResponseDto> createGenre(@Valid @RequestBody CreateGenreRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(genreService.createGenre(request));
     }
 
     @GetMapping("/{genreId}")
-    public ResponseEntity<GenreDto> getGenreById(@PathVariable Long genreId) {
+    public ResponseEntity<GenreResponseDto> getGenreById(@PathVariable Long genreId) {
         try {
             return ResponseEntity.ok(genreService.getGenreById(genreId));
         } catch (RuntimeException e) {
@@ -33,19 +36,19 @@ public class GenreController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<GenreDto>> getAllGenres(
+    public ResponseEntity<Page<GenreResponseDto>> getAllGenres(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(genreService.getAllGenres(page, size));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<GenreDto>> searchGenres(@RequestParam String name) {
+    public ResponseEntity<List<GenreResponseDto>> searchGenres(@RequestParam String name) {
         return ResponseEntity.ok(genreService.searchGenres(name));
     }
 
     @PutMapping("/{genreId}")
-    public ResponseEntity<GenreDto> updateGenre(@PathVariable Long genreId, @RequestBody GenreDto request) {
+    public ResponseEntity<GenreResponseDto> updateGenre(@PathVariable Long genreId, @Valid @RequestBody UpdateGenreRequestDto request) {
         try {
             return ResponseEntity.ok(genreService.updateGenre(genreId, request));
         } catch (RuntimeException e) {
@@ -93,7 +96,7 @@ public class GenreController {
     }
 
     @GetMapping("/books/{bookId}")
-    public ResponseEntity<List<GenreDto>> getGenresByBook(@PathVariable Long bookId) {
+    public ResponseEntity<List<GenreResponseDto>> getGenresByBook(@PathVariable Long bookId) {
         try {
             return ResponseEntity.ok(genreService.getGenresByBook(bookId));
         } catch (RuntimeException e) {

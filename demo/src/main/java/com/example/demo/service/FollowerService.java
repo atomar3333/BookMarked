@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.FollowerDto;
+import com.example.demo.dto.response.FollowerResponseDto;
 import com.example.demo.entity.Follower;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -26,7 +26,7 @@ public class FollowerService {
     private final UserRepository userRepository;
 
     @Transactional
-    public FollowerDto follow(Long followerId, Long followingId) {
+    public FollowerResponseDto follow(Long followerId, Long followingId) {
         assertSelfOrAdmin(followerId);
 
         if (followerId.equals(followingId)) {
@@ -60,7 +60,7 @@ public class FollowerService {
 
     // Get all users who follow userId
     @Transactional(readOnly = true)
-    public Page<FollowerDto> getFollowers(Long userId, int page, int size) {
+    public Page<FollowerResponseDto> getFollowers(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
         }
@@ -70,7 +70,7 @@ public class FollowerService {
 
     // Get all users that userId is following
     @Transactional(readOnly = true)
-    public Page<FollowerDto> getFollowing(Long userId, int page, int size) {
+    public Page<FollowerResponseDto> getFollowing(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
         }
@@ -94,8 +94,8 @@ public class FollowerService {
         return Map.of("userId", userId, "followingCount", followerRepository.countByFollowerId(userId));
     }
 
-    private FollowerDto mapToDto(Follower follow) {
-        FollowerDto dto = new FollowerDto();
+    private FollowerResponseDto mapToDto(Follower follow) {
+        FollowerResponseDto dto = new FollowerResponseDto();
         dto.setId(follow.getId());
         dto.setFollowerId(follow.getFollower().getId());
         dto.setFollowingId(follow.getFollowing().getId());

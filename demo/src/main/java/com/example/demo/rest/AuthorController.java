@@ -1,6 +1,9 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.AuthorDto;
+import com.example.demo.dto.request.CreateAuthorRequestDto;
+import com.example.demo.dto.request.UpdateAuthorRequestDto;
+import com.example.demo.dto.response.AuthorResponseDto;
+import jakarta.validation.Valid;
 import com.example.demo.entity.Book;
 import com.example.demo.service.AuthorService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +22,12 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @PostMapping
-    public ResponseEntity<AuthorDto> createAuthor(@RequestBody AuthorDto request) {
+    public ResponseEntity<AuthorResponseDto> createAuthor(@Valid @RequestBody CreateAuthorRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authorService.createAuthor(request));
     }
 
     @GetMapping("/{authorId}")
-    public ResponseEntity<AuthorDto> getAuthorById(@PathVariable Long authorId) {
+    public ResponseEntity<AuthorResponseDto> getAuthorById(@PathVariable Long authorId) {
         try {
             return ResponseEntity.ok(authorService.getAuthorById(authorId));
         } catch (RuntimeException e) {
@@ -33,19 +36,19 @@ public class AuthorController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<AuthorDto>> getAllAuthors(
+    public ResponseEntity<Page<AuthorResponseDto>> getAllAuthors(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(authorService.getAllAuthors(page, size));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<AuthorDto>> searchAuthors(@RequestParam String name) {
+    public ResponseEntity<List<AuthorResponseDto>> searchAuthors(@RequestParam String name) {
         return ResponseEntity.ok(authorService.searchAuthors(name));
     }
 
     @PutMapping("/{authorId}")
-    public ResponseEntity<AuthorDto> updateAuthor(@PathVariable Long authorId, @RequestBody AuthorDto request) {
+    public ResponseEntity<AuthorResponseDto> updateAuthor(@PathVariable Long authorId, @Valid @RequestBody UpdateAuthorRequestDto request) {
         try {
             return ResponseEntity.ok(authorService.updateAuthor(authorId, request));
         } catch (RuntimeException e) {
@@ -96,7 +99,7 @@ public class AuthorController {
 
     // Get authors of a book
     @GetMapping("/books/{bookId}")
-    public ResponseEntity<List<AuthorDto>> getAuthorsByBook(@PathVariable Long bookId) {
+    public ResponseEntity<List<AuthorResponseDto>> getAuthorsByBook(@PathVariable Long bookId) {
         try {
             return ResponseEntity.ok(authorService.getAuthorsByBook(bookId));
         } catch (RuntimeException e) {
