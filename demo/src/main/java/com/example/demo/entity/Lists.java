@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 
 @Entity
 @Table(name = "lists")
@@ -32,7 +32,7 @@ public class Lists {
     private boolean isPublic = true;
 
     @Transient
-    private LikeStatsDto likeStats;
+    private LikeStatsResponseDto likeStats;
 
     @PrePersist
     public void prePersist() {

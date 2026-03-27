@@ -1,8 +1,8 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.CreateListDto;
-import com.example.demo.dto.ListDto;
-import com.example.demo.dto.UpdateListDto;
+import com.example.demo.dto.request.CreateListRequestDto;
+import com.example.demo.dto.request.UpdateListRequestDto;
+import com.example.demo.dto.response.ListResponseDto;
 import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Lists;
 import com.example.demo.entity.Role;
@@ -32,7 +32,7 @@ public class ListsService {
     private final ActivityService activityService;
 
     @Transactional
-    public ListDto createList(CreateListDto request) {
+    public ListResponseDto createList(CreateListRequestDto request) {
         User currentUser = getCurrentUserOrThrow();
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
         if (!isAdmin && !currentUser.getId().equals(request.getUserId())) {
@@ -65,7 +65,7 @@ public class ListsService {
     }
 
     @Transactional(readOnly = true)
-    public ListDto getListById(Long listId) {
+    public ListResponseDto getListById(Long listId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
         assertListVisibleToCurrentViewer(list);
@@ -73,7 +73,7 @@ public class ListsService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ListDto> getAllLists(int page, int size) {
+    public Page<ListResponseDto> getAllLists(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         User viewer = getCurrentUserOrThrow();
         if (viewer.getRole() == Role.ROLE_ADMIN) {
@@ -83,7 +83,7 @@ public class ListsService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ListDto> getListsByUser(Long userId, int page, int size) {
+    public Page<ListResponseDto> getListsByUser(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
         }
@@ -98,7 +98,7 @@ public class ListsService {
     }
 
     @Transactional(readOnly = true)
-    public List<ListDto> searchLists(String query) {
+    public List<ListResponseDto> searchLists(String query) {
         if (query == null || query.isBlank()) {
             throw new RuntimeException("Search query cannot be empty");
         }
@@ -118,7 +118,7 @@ public class ListsService {
     }
 
     @Transactional
-    public ListDto updateList(Long listId, UpdateListDto request) {
+    public ListResponseDto updateList(Long listId, UpdateListRequestDto request) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
 
@@ -151,8 +151,8 @@ public class ListsService {
         listsRepository.deleteById(listId);
     }
 
-    private ListDto mapToDto(Lists list) {
-        ListDto dto = new ListDto();
+    private ListResponseDto mapToDto(Lists list) {
+        ListResponseDto dto = new ListResponseDto();
         dto.setId(list.getId());
         dto.setUserId(list.getUser().getId());
         dto.setTitle(list.getTitle());

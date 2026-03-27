@@ -1,7 +1,10 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.ReviewDto;
+import com.example.demo.dto.request.CreateReviewRequestDto;
+import com.example.demo.dto.request.UpdateReviewRequestDto;
+import com.example.demo.dto.response.ReviewResponseDto;
 import com.example.demo.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<ReviewDto> createReview(@RequestBody ReviewDto payload) {
+    public ResponseEntity<ReviewResponseDto> createReview(@Valid @RequestBody CreateReviewRequestDto payload) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.createReview(payload));
         } catch (AccessDeniedException e) {
@@ -29,7 +32,7 @@ public class ReviewController {
     }
 
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewDto> getReviewById(@PathVariable Long reviewId) {
+    public ResponseEntity<ReviewResponseDto> getReviewById(@PathVariable Long reviewId) {
         try {
             return ResponseEntity.ok(reviewService.getReviewById(reviewId));
         } catch (RuntimeException e) {
@@ -38,12 +41,12 @@ public class ReviewController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<ReviewDto>> getAllReviews() {
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviews() {
         return ResponseEntity.ok(reviewService.getAllReviews());
     }
 
     @GetMapping("/books/{bookId}")
-    public ResponseEntity<List<ReviewDto>> getReviewsByBook(@PathVariable Long bookId) {
+    public ResponseEntity<List<ReviewResponseDto>> getReviewsByBook(@PathVariable Long bookId) {
         try {
             return ResponseEntity.ok(reviewService.getReviewsByBook(bookId));
         } catch (RuntimeException e) {
@@ -52,7 +55,7 @@ public class ReviewController {
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<ReviewDto>> getReviewsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<ReviewResponseDto>> getReviewsByUser(@PathVariable Long userId) {
         try {
             return ResponseEntity.ok(reviewService.getReviewsByUser(userId));
         } catch (RuntimeException e) {
@@ -61,7 +64,9 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable Long reviewId, @RequestBody ReviewDto payload) {
+    public ResponseEntity<ReviewResponseDto> updateReview(
+            @PathVariable Long reviewId,
+            @Valid @RequestBody UpdateReviewRequestDto payload) {
         try {
             return ResponseEntity.ok(reviewService.updateReview(reviewId, payload));
         } catch (AccessDeniedException e) {

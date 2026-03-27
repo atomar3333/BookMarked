@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.LikeDto;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeResponseDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.ListLike;
 import com.example.demo.entity.Lists;
@@ -32,7 +32,7 @@ public class ListLikeService {
     private final ActivityService activityService;
 
     @Transactional
-    public LikeDto likeList(Long listId) {
+    public LikeResponseDto likeList(Long listId) {
         Long currentUserId = getCurrentUserIdOrThrow();
         
         User user = userRepository.findById(currentUserId)
@@ -69,7 +69,7 @@ public class ListLikeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LikeDto> getListLikes(Long listId, int page, int size) {
+    public Page<LikeResponseDto> getListLikes(Long listId, int page, int size) {
         if (!listsRepository.existsById(listId)) {
             throw new RuntimeException("List not found with ID: " + listId);
         }
@@ -78,7 +78,7 @@ public class ListLikeService {
     }
 
     @Transactional(readOnly = true)
-    public LikeStatsDto getListLikeStats(Long listId) {
+    public LikeStatsResponseDto getListLikeStats(Long listId) {
         if (!listsRepository.existsById(listId)) {
             throw new RuntimeException("List not found with ID: " + listId);
         }
@@ -91,7 +91,7 @@ public class ListLikeService {
             likedByCurrentUser = listLikeRepository.existsByUserIdAndListId(currentUserId, listId);
         }
         
-        return new LikeStatsDto(likeCount, likedByCurrentUser);
+        return new LikeStatsResponseDto(likeCount, likedByCurrentUser);
     }
 
     @Transactional(readOnly = true)
@@ -99,8 +99,8 @@ public class ListLikeService {
         return listLikeRepository.existsByUserIdAndListId(userId, listId);
     }
 
-    private LikeDto mapToDto(ListLike like) {
-        LikeDto dto = new LikeDto();
+    private LikeResponseDto mapToDto(ListLike like) {
+        LikeResponseDto dto = new LikeResponseDto();
         dto.setId(like.getId());
         dto.setUserId(like.getUser().getId());
         dto.setUserName(like.getUser().getUserName());

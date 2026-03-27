@@ -1,15 +1,13 @@
-package com.example.demo.dto;
+package com.example.demo.dto.response;
 
 import java.time.LocalDateTime;
 
-public class BookListDto {
+public class BookListResponseDto {
+
     private Long id;
     private Long listId;
     private Long bookId;
     private LocalDateTime addedAt;
-
-    public BookListDto() {
-    }
 
     public Long getId() {
         return id;

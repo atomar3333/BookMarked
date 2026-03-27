@@ -1,12 +1,16 @@
-package com.example.demo.dto;
+package com.example.demo.dto.request;
 
-public class UpdateListDto {
+import jakarta.validation.constraints.Size;
+
+public class UpdateListRequestDto {
+
+    @Size(max = 255, message = "title cannot exceed 255 characters")
     private String title;
-    private String description;
-    private Boolean isPublic;
 
-    public UpdateListDto() {
-    }
+    @Size(max = 5000, message = "description cannot exceed 5000 characters")
+    private String description;
+
+    private Boolean isPublic;
 
     public String getTitle() {
         return title;

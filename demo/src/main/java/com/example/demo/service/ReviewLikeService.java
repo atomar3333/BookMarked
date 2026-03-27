@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.LikeDto;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeResponseDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 import com.example.demo.entity.ActivityType;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.ReviewLike;
@@ -32,7 +32,7 @@ public class ReviewLikeService {
     private final ActivityService activityService;
 
     @Transactional
-    public LikeDto likeReview(Long reviewId) {
+    public LikeResponseDto likeReview(Long reviewId) {
         Long currentUserId = getCurrentUserIdOrThrow();
         
         User user = userRepository.findById(currentUserId)
@@ -70,7 +70,7 @@ public class ReviewLikeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LikeDto> getReviewLikes(Long reviewId, int page, int size) {
+    public Page<LikeResponseDto> getReviewLikes(Long reviewId, int page, int size) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new RuntimeException("Review not found with ID: " + reviewId);
         }
@@ -79,7 +79,7 @@ public class ReviewLikeService {
     }
 
     @Transactional(readOnly = true)
-    public LikeStatsDto getReviewLikeStats(Long reviewId) {
+    public LikeStatsResponseDto getReviewLikeStats(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new RuntimeException("Review not found with ID: " + reviewId);
         }
@@ -92,7 +92,7 @@ public class ReviewLikeService {
             likedByCurrentUser = reviewLikeRepository.existsByUserIdAndReviewId(currentUserId, reviewId);
         }
         
-        return new LikeStatsDto(likeCount, likedByCurrentUser);
+        return new LikeStatsResponseDto(likeCount, likedByCurrentUser);
     }
 
     @Transactional(readOnly = true)
@@ -100,8 +100,8 @@ public class ReviewLikeService {
         return reviewLikeRepository.existsByUserIdAndReviewId(userId, reviewId);
     }
 
-    private LikeDto mapToDto(ReviewLike like) {
-        LikeDto dto = new LikeDto();
+    private LikeResponseDto mapToDto(ReviewLike like) {
+        LikeResponseDto dto = new LikeResponseDto();
         dto.setId(like.getId());
         dto.setUserId(like.getUser().getId());
         dto.setUserName(like.getUser().getUserName());

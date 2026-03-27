@@ -44,6 +44,16 @@ public class SecurityConfig {
                                 "/swagger-ui.html").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/users/all").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/users/search").authenticated()
+                        // Like endpoints: all authenticated users can like/unlike
+                        .requestMatchers(HttpMethod.POST, "/api/books/*/likes").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/books/*/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/books/*/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/*/likes").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/*/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/*/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/lists/*/likes").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/lists/*/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/lists/*/likes/**").authenticated()
                         // Admin-only: manage book catalog
                         .requestMatchers(HttpMethod.POST, "/api/books/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasAuthority("ROLE_ADMIN")

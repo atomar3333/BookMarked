@@ -1,7 +1,8 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.LikeDto;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeResponseDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
+import com.example.demo.dto.response.LikedStateResponseDto;
 import com.example.demo.service.ListLikeService;
 import com.example.demo.service.ListsService;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/lists/{listId}/likes")
@@ -23,9 +21,9 @@ public class ListLikeController {
     private final ListsService listsService;
 
     @PostMapping
-    public ResponseEntity<LikeDto> likeList(@PathVariable Long listId) {
+    public ResponseEntity<LikeResponseDto> likeList(@PathVariable Long listId) {
         try {
-            LikeDto like = listLikeService.likeList(listId);
+            LikeResponseDto like = listLikeService.likeList(listId);
             return ResponseEntity.status(HttpStatus.CREATED).body(like);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -50,10 +48,10 @@ public class ListLikeController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<LikeStatsDto> getLikeStats(@PathVariable Long listId) {
+    public ResponseEntity<LikeStatsResponseDto> getLikeStats(@PathVariable Long listId) {
         try {
             listsService.assertListVisibility(listId);
-            LikeStatsDto stats = listLikeService.getListLikeStats(listId);
+            LikeStatsResponseDto stats = listLikeService.getListLikeStats(listId);
             return ResponseEntity.ok(stats);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -63,12 +61,12 @@ public class ListLikeController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<LikeDto>> getListLikes(
+    public ResponseEntity<Page<LikeResponseDto>> getListLikes(
             @PathVariable Long listId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
-            Page<LikeDto> likes = listLikeService.getListLikes(listId, page, size);
+            Page<LikeResponseDto> likes = listLikeService.getListLikes(listId, page, size);
             return ResponseEntity.ok(likes);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -76,13 +74,11 @@ public class ListLikeController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Boolean>> hasUserLiked(@PathVariable Long listId) {
+    public ResponseEntity<LikedStateResponseDto> hasUserLiked(@PathVariable Long listId) {
         try {
-            LikeStatsDto stats = listLikeService.getListLikeStats(listId);
+            LikeStatsResponseDto stats = listLikeService.getListLikeStats(listId);
             boolean liked = Boolean.TRUE.equals(stats.getLikedByCurrentUser());
-            Map<String, Boolean> response = new HashMap<>();
-            response.put("liked", liked);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(new LikedStateResponseDto(liked));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

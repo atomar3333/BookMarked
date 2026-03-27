@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.BookListDto;
+import com.example.demo.dto.response.BookListResponseDto;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.BookList;
 import com.example.demo.entity.Lists;
@@ -30,7 +30,7 @@ public class BookListService {
     private final UserRepository userRepository;
 
     @Transactional
-    public BookListDto addBookToList(Long listId, Long bookId) {
+    public BookListResponseDto addBookToList(Long listId, Long bookId) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
 
@@ -64,7 +64,7 @@ public class BookListService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BookListDto> getBooksInList(Long listId, int page, int size) {
+    public Page<BookListResponseDto> getBooksInList(Long listId, int page, int size) {
         Lists list = listsRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found with ID: " + listId));
         assertListVisibleToCurrentViewer(list);
@@ -82,8 +82,8 @@ public class BookListService {
         return bookListRepository.countByListId(listId);
     }
 
-    private BookListDto mapToDto(BookList bookList) {
-        BookListDto dto = new BookListDto();
+    private BookListResponseDto mapToDto(BookList bookList) {
+        BookListResponseDto dto = new BookListResponseDto();
         dto.setId(bookList.getId());
         dto.setListId(bookList.getList().getId());
         dto.setBookId(bookList.getBook().getId());

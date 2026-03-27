@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.LikeDto;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeResponseDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 import com.example.demo.entity.*;
 import com.example.demo.repository.BookLikeRepository;
 import com.example.demo.repository.BookRepository;
@@ -30,7 +30,7 @@ public class BookLikeService {
     private final ActivityService activityService;
 
     @Transactional
-    public LikeDto likeBook(Long bookId) {
+    public LikeResponseDto likeBook(Long bookId) {
         Long currentUserId = getCurrentUserIdOrThrow();
         
         User user = userRepository.findById(currentUserId)
@@ -68,7 +68,7 @@ public class BookLikeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LikeDto> getBookLikes(Long bookId, int page, int size) {
+    public Page<LikeResponseDto> getBookLikes(Long bookId, int page, int size) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
         }
@@ -77,7 +77,7 @@ public class BookLikeService {
     }
 
     @Transactional(readOnly = true)
-    public LikeStatsDto getBookLikeStats(Long bookId) {
+    public LikeStatsResponseDto getBookLikeStats(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new RuntimeException("Book not found with ID: " + bookId);
         }
@@ -90,7 +90,7 @@ public class BookLikeService {
             likedByCurrentUser = bookLikeRepository.existsByUserIdAndBookId(currentUserId, bookId);
         }
         
-        return new LikeStatsDto(likeCount, likedByCurrentUser);
+        return new LikeStatsResponseDto(likeCount, likedByCurrentUser);
     }
 
     @Transactional(readOnly = true)
@@ -98,8 +98,8 @@ public class BookLikeService {
         return bookLikeRepository.existsByUserIdAndBookId(userId, bookId);
     }
 
-    private LikeDto mapToDto(BookLike like) {
-        LikeDto dto = new LikeDto();
+    private LikeResponseDto mapToDto(BookLike like) {
+        LikeResponseDto dto = new LikeResponseDto();
         dto.setId(like.getId());
         dto.setUserId(like.getUser().getId());
         dto.setUserName(like.getUser().getUserName());

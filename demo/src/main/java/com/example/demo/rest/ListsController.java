@@ -1,11 +1,12 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.BookListDto;
-import com.example.demo.dto.CreateListDto;
-import com.example.demo.dto.ListDto;
-import com.example.demo.dto.UpdateListDto;
+import com.example.demo.dto.request.CreateListRequestDto;
+import com.example.demo.dto.request.UpdateListRequestDto;
+import com.example.demo.dto.response.BookListResponseDto;
+import com.example.demo.dto.response.ListResponseDto;
 import com.example.demo.service.BookListService;
 import com.example.demo.service.ListsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class ListsController {
     private final BookListService bookListService;
 
     @PostMapping
-    public ResponseEntity<ListDto> createList(@RequestBody CreateListDto payload) {
+    public ResponseEntity<ListResponseDto> createList(@Valid @RequestBody CreateListRequestDto payload) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(listsService.createList(payload));
         } catch (AccessDeniedException e) {
@@ -37,7 +38,7 @@ public class ListsController {
     }
 
     @GetMapping("/{listId}")
-    public ResponseEntity<ListDto> getListById(@PathVariable Long listId) {
+    public ResponseEntity<ListResponseDto> getListById(@PathVariable Long listId) {
         try {
             return ResponseEntity.ok(listsService.getListById(listId));
         } catch (AccessDeniedException e) {
@@ -48,14 +49,14 @@ public class ListsController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<ListDto>> getAllLists(
+    public ResponseEntity<Page<ListResponseDto>> getAllLists(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(listsService.getAllLists(page, size));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ListDto>> searchLists(@RequestParam String query) {
+    public ResponseEntity<List<ListResponseDto>> searchLists(@RequestParam String query) {
         try {
             return ResponseEntity.ok(listsService.searchLists(query));
         } catch (RuntimeException e) {
@@ -64,7 +65,7 @@ public class ListsController {
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<Page<ListDto>> getListsByUser(
+    public ResponseEntity<Page<ListResponseDto>> getListsByUser(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -76,9 +77,9 @@ public class ListsController {
     }
 
     @PutMapping("/{listId}")
-    public ResponseEntity<ListDto> updateList(
+    public ResponseEntity<ListResponseDto> updateList(
             @PathVariable Long listId,
-            @RequestBody UpdateListDto payload) {
+            @Valid @RequestBody UpdateListRequestDto payload) {
         try {
             return ResponseEntity.ok(listsService.updateList(listId, payload));
         } catch (AccessDeniedException e) {
@@ -101,7 +102,7 @@ public class ListsController {
     }
 
     @PostMapping("/{listId}/books/{bookId}")
-    public ResponseEntity<BookListDto> addBookToList(
+    public ResponseEntity<BookListResponseDto> addBookToList(
             @PathVariable Long listId,
             @PathVariable Long bookId) {
         try {
@@ -131,7 +132,7 @@ public class ListsController {
     }
 
     @GetMapping("/{listId}/books")
-    public ResponseEntity<Page<BookListDto>> getBooksInList(
+    public ResponseEntity<Page<BookListResponseDto>> getBooksInList(
             @PathVariable Long listId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

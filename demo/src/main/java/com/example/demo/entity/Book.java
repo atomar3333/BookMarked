@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 
 @Entity
 @Table(name = "books")
@@ -39,7 +39,7 @@ public class Book {
     private LocalDate publishDate;
 
     @Transient
-    private LikeStatsDto likeStats;
+    private LikeStatsResponseDto likeStats;
 
     @ManyToMany
     @JoinTable(

@@ -1,7 +1,8 @@
 package com.example.demo.rest;
 
-import com.example.demo.dto.LikeDto;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeResponseDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
+import com.example.demo.dto.response.LikedStateResponseDto;
 import com.example.demo.service.ReviewLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,9 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reviews/{reviewId}/likes")
@@ -21,9 +19,9 @@ public class ReviewLikeController {
     private final ReviewLikeService reviewLikeService;
 
     @PostMapping
-    public ResponseEntity<LikeDto> likeReview(@PathVariable Long reviewId) {
+    public ResponseEntity<LikeResponseDto> likeReview(@PathVariable Long reviewId) {
         try {
-            LikeDto like = reviewLikeService.likeReview(reviewId);
+            LikeResponseDto like = reviewLikeService.likeReview(reviewId);
             return ResponseEntity.status(HttpStatus.CREATED).body(like);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -48,9 +46,9 @@ public class ReviewLikeController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<LikeStatsDto> getLikeStats(@PathVariable Long reviewId) {
+    public ResponseEntity<LikeStatsResponseDto> getLikeStats(@PathVariable Long reviewId) {
         try {
-            LikeStatsDto stats = reviewLikeService.getReviewLikeStats(reviewId);
+            LikeStatsResponseDto stats = reviewLikeService.getReviewLikeStats(reviewId);
             return ResponseEntity.ok(stats);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -58,12 +56,12 @@ public class ReviewLikeController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<LikeDto>> getReviewLikes(
+    public ResponseEntity<Page<LikeResponseDto>> getReviewLikes(
             @PathVariable Long reviewId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
-            Page<LikeDto> likes = reviewLikeService.getReviewLikes(reviewId, page, size);
+            Page<LikeResponseDto> likes = reviewLikeService.getReviewLikes(reviewId, page, size);
             return ResponseEntity.ok(likes);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -71,13 +69,11 @@ public class ReviewLikeController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Boolean>> hasUserLiked(@PathVariable Long reviewId) {
+    public ResponseEntity<LikedStateResponseDto> hasUserLiked(@PathVariable Long reviewId) {
         try {
-            LikeStatsDto stats = reviewLikeService.getReviewLikeStats(reviewId);
+            LikeStatsResponseDto stats = reviewLikeService.getReviewLikeStats(reviewId);
             boolean liked = Boolean.TRUE.equals(stats.getLikedByCurrentUser());
-            Map<String, Boolean> response = new HashMap<>();
-            response.put("liked", liked);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(new LikedStateResponseDto(liked));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

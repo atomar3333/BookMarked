@@ -1,19 +1,18 @@
-package com.example.demo.dto;
+package com.example.demo.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 
-public class ListDto {
+public class ListResponseDto {
+
     private Long id;
     private Long userId;
     private String title;
     private String description;
     private LocalDateTime createdDate;
     private boolean isPublic;
-    private LikeStatsDto likeStats;
-
-    public ListDto() {
-    }
+    private LikeStatsResponseDto likeStats;
 
     public Long getId() {
         return id;
@@ -64,11 +63,11 @@ public class ListDto {
         this.isPublic = isPublic;
     }
 
-    public LikeStatsDto getLikeStats() {
+    public LikeStatsResponseDto getLikeStats() {
         return likeStats;
     }
 
-    public void setLikeStats(LikeStatsDto likeStats) {
+    public void setLikeStats(LikeStatsResponseDto likeStats) {
         this.likeStats = likeStats;
     }
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import com.example.demo.dto.LikeStatsDto;
+import com.example.demo.dto.response.LikeStatsResponseDto;
 
 @Entity
 @Table(name = "reviews")
@@ -34,5 +34,5 @@ public class Review {
     private LocalDateTime createdAt;
 
     @Transient
-    private LikeStatsDto likeStats;
+    private LikeStatsResponseDto likeStats;
 }
