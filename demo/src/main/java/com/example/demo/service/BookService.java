@@ -25,7 +25,6 @@ public class BookService {
         book.setGoogleBooksId(request.getGoogleBooksId());
         book.setTitle(request.getTitle());
         book.setAuthor(request.getAuthor());
-        book.setIsbn(request.getIsbn());
         book.setCoverImageUrl(request.getCoverImageUrl());
         book.setDescription(request.getDescription());
         book.setPublishDate(request.getPublishDate());
@@ -61,7 +60,6 @@ public class BookService {
         book.setGoogleBooksId(request.getGoogleBooksId());
         book.setTitle(request.getTitle());
         book.setAuthor(request.getAuthor());
-        book.setIsbn(request.getIsbn());
         book.setCoverImageUrl(request.getCoverImageUrl());
         book.setDescription(request.getDescription());
         book.setPublishDate(request.getPublishDate());

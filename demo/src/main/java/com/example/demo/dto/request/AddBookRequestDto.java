@@ -15,7 +15,6 @@ public class AddBookRequestDto {
     private String author;
 
     private String googleBooksId;
-    private String isbn;
     private String coverImageUrl;
     private String description;
     private LocalDate publishDate;
@@ -47,13 +46,7 @@ public class AddBookRequestDto {
         this.googleBooksId = googleBooksId;
     }
 
-    public String getIsbn() {
-        return isbn;
-    }
 
-    public void setIsbn(String isbn) {
-        this.isbn = isbn;
-    }
 
     public String getCoverImageUrl() {
         return coverImageUrl;

@@ -18,15 +18,14 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 sql = """
-INSERT INTO works (
-    open_library_work_id, title, subtitle, description, first_publish_year,
-    subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO books (
+    open_library_work_id, title, subtitle, description,  
+    subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified, cover_image_url, author
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON DUPLICATE KEY UPDATE
     title=VALUES(title),
     subtitle=VALUES(subtitle),
     description=VALUES(description),
-    first_publish_year=VALUES(first_publish_year),
     subjects=VALUES(subjects),
     authors=VALUES(authors),
     covers=VALUES(covers),
@@ -34,33 +33,43 @@ ON DUPLICATE KEY UPDATE
     latest_revision=VALUES(latest_revision),
     revision=VALUES(revision),
     created=VALUES(created),
-    last_modified=VALUES(last_modified)
+    last_modified=VALUES(last_modified),
+    cover_image_url=VALUES(cover_image_url),
+    author=VALUES(author)
 """
 
 for work in works:
     open_library_work_id = work.get("key")
     title = work.get("title")
     subtitle = work.get("subtitle")
-    # Description can be a string or dict
+    authors_list = work.get("authors", [])
+    # Insert first author id (from link) in author column
+    if authors_list and "author" in authors_list[0] and "key" in authors_list[0]["author"]:
+        author = authors_list[0]["author"]["key"]
+    else:
+        author = ""
+    # Insert all author ids as JSON array in authors column
+    authors = json.dumps([a["author"]["key"] for a in authors_list if "author" in a and "key" in a["author"]])
     desc = work.get("description")
     if isinstance(desc, dict):
         description = desc.get("value")
     else:
         description = desc
-    first_publish_year = work.get("first_publish_year", None)
     subjects = json.dumps(work.get("subjects", []))
-    # Authors: store as JSON list of author keys
-    authors = json.dumps([a["author"]["key"] for a in work.get("authors", []) if "author" in a and "key" in a["author"]])
-    covers = json.dumps(work.get("covers", []))
     identifiers = json.dumps(work.get("identifiers", {}))
     latest_revision = work.get("latest_revision")
+    google_books_id = None  # Not available from Open Library data
+    covers_list = work.get("covers", [])
+    covers = json.dumps(covers_list)
     revision = work.get("revision")
+    cover_image_url = None
     created = work.get("created", {}).get("value") if isinstance(work.get("created"), dict) else work.get("created")
     last_modified = work.get("last_modified", {}).get("value") if isinstance(work.get("last_modified"), dict) else work.get("last_modified")
+    if covers_list and isinstance(covers_list, list) and covers_list[0] != -1:
+        cover_image_url = f"https://covers.openlibrary.org/b/id/{covers_list[0]}-L.jpg"
 
     cursor.execute(sql, (
-        open_library_work_id, title, subtitle, description, first_publish_year,
-        subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified
+        open_library_work_id, title, subtitle, description, subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified, cover_image_url, author
     ))
 
 conn.commit()
