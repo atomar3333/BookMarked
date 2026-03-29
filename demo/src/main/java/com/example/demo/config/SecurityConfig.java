@@ -65,6 +65,10 @@ public class SecurityConfig {
                             // Admin-only: manage genre catalog and book-genre links
                             .requestMatchers(HttpMethod.POST, "/api/genres/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/api/genres/**").hasAuthority("ROLE_ADMIN")
+                        // Admin-only: manage book author relationship
+                        .requestMatchers(HttpMethod.POST, "/api/book-authors/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/book-authors/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/book-authors/**").hasAuthority("ROLE_ADMIN")
                         // Admin-only: delete or manage other users
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
                         // Activities: all endpoints require authentication (privacy enforced in service layer)
