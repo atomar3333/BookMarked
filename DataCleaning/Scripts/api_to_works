@@ -1,0 +1,68 @@
+import requests
+import json
+import mysql.connector
+
+# Fetch works JSON from Open Library
+url = "https://openlibrary.org/authors/OL1394865A/works.json"
+response = requests.get(url)
+data = response.json()
+works = data.get("entries", [])
+
+# Connect to MySQL
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Samsung@24",
+    database="bookmarked"
+)
+cursor = conn.cursor()
+
+sql = """
+INSERT INTO works (
+    open_library_work_id, title, subtitle, description, first_publish_year,
+    subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+ON DUPLICATE KEY UPDATE
+    title=VALUES(title),
+    subtitle=VALUES(subtitle),
+    description=VALUES(description),
+    first_publish_year=VALUES(first_publish_year),
+    subjects=VALUES(subjects),
+    authors=VALUES(authors),
+    covers=VALUES(covers),
+    identifiers=VALUES(identifiers),
+    latest_revision=VALUES(latest_revision),
+    revision=VALUES(revision),
+    created=VALUES(created),
+    last_modified=VALUES(last_modified)
+"""
+
+for work in works:
+    open_library_work_id = work.get("key")
+    title = work.get("title")
+    subtitle = work.get("subtitle")
+    # Description can be a string or dict
+    desc = work.get("description")
+    if isinstance(desc, dict):
+        description = desc.get("value")
+    else:
+        description = desc
+    first_publish_year = work.get("first_publish_year", None)
+    subjects = json.dumps(work.get("subjects", []))
+    # Authors: store as JSON list of author keys
+    authors = json.dumps([a["author"]["key"] for a in work.get("authors", []) if "author" in a and "key" in a["author"]])
+    covers = json.dumps(work.get("covers", []))
+    identifiers = json.dumps(work.get("identifiers", {}))
+    latest_revision = work.get("latest_revision")
+    revision = work.get("revision")
+    created = work.get("created", {}).get("value") if isinstance(work.get("created"), dict) else work.get("created")
+    last_modified = work.get("last_modified", {}).get("value") if isinstance(work.get("last_modified"), dict) else work.get("last_modified")
+
+    cursor.execute(sql, (
+        open_library_work_id, title, subtitle, description, first_publish_year,
+        subjects, authors, covers, identifiers, latest_revision, revision, created, last_modified
+    ))
+
+conn.commit()
+cursor.close()
+conn.close()

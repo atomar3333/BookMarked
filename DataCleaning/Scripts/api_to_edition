@@ -1,0 +1,84 @@
+import requests
+import json
+import mysql.connector
+
+
+# Fetch editions JSON from Open Library
+import re
+url = "https://openlibrary.org/works/OL44985659W/editions.json"
+# Extract work_id from the URL
+match = re.search(r"/works/(OL[0-9A-Z]+W)/editions.json", url)
+open_library_work_id = match.group(1) if match else None
+response = requests.get(url)
+data = response.json()
+editions = data.get("entries", [])
+
+# Connect to MySQL
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Samsung@24",
+    database="bookmarked"
+)
+cursor = conn.cursor()
+
+sql = """
+INSERT INTO editions (
+    open_library_edition_id, open_library_work_id, title, notes, covers, identifiers,
+    latest_revision, revision, created, last_modified, isbn10, isbn13, publishers,
+    publish_date, page_count, binding, cover_image_url
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+ON DUPLICATE KEY UPDATE
+    title=VALUES(title),
+    notes=VALUES(notes),
+    covers=VALUES(covers),
+    identifiers=VALUES(identifiers),
+    latest_revision=VALUES(latest_revision),
+    revision=VALUES(revision),
+    created=VALUES(created),
+    last_modified=VALUES(last_modified),
+    isbn10=VALUES(isbn10),
+    isbn13=VALUES(isbn13),
+    publishers=VALUES(publishers),
+    publish_date=VALUES(publish_date),
+    page_count=VALUES(page_count),
+    binding=VALUES(binding),
+    cover_image_url=VALUES(cover_image_url)
+"""
+
+for edition in editions:
+    open_library_edition_id = edition.get("key", "").replace("/books/", "")
+    # Use the work_id extracted from the URL
+    # open_library_work_id is already set above
+    title = edition.get("title")
+    notes = edition.get("notes", {}).get("value") if isinstance(edition.get("notes"), dict) else edition.get("notes")
+    covers_list = edition.get("covers", [])
+    covers = json.dumps(covers_list)
+    cover_image_url = None
+    if covers_list and isinstance(covers_list, list) and covers_list[0] != -1:
+        cover_image_url = f"https://covers.openlibrary.org/b/id/{covers_list[0]}-L.jpg"
+    identifiers = json.dumps(edition.get("identifiers", {}))
+    latest_revision = edition.get("latest_revision")
+    revision = edition.get("revision")
+    created = edition.get("created", {}).get("value") if isinstance(edition.get("created"), dict) else edition.get("created")
+    last_modified = edition.get("last_modified", {}).get("value") if isinstance(edition.get("last_modified"), dict) else edition.get("last_modified")
+    # Take only the first element of isbn_10 and isbn_13 arrays if present
+    isbn10 = edition["isbn_10"][0] if "isbn_10" in edition and isinstance(edition["isbn_10"], list) and len(edition["isbn_10"]) > 0 else None
+    isbn13 = edition["isbn_13"][0] if "isbn_13" in edition and isinstance(edition["isbn_13"], list) and len(edition["isbn_13"]) > 0 else None
+    publishers = json.dumps(edition.get("publishers", []))
+    publish_date = edition.get("publish_date")
+    page_count = edition.get("number_of_pages")
+    binding = edition.get("physical_format")
+    # Removed author photo logic; now using edition covers for cover_image_url
+
+
+
+    cursor.execute(sql, (
+        open_library_edition_id, open_library_work_id, title, notes, covers, identifiers,
+        latest_revision, revision, created, last_modified, isbn10, isbn13, publishers,
+        publish_date, page_count, binding, cover_image_url
+    ))
+
+conn.commit()
+cursor.close()
+conn.close()

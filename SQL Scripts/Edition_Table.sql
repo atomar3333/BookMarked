@@ -1,17 +1,23 @@
 CREATE TABLE editions (
   id BIGINT PRIMARY KEY auto_increment,
-  work_id BIGINT NOT NULL,
+  open_library_work_id VARCHAR(30),
   open_library_edition_id VARCHAR(30) UNIQUE,
+  title VARCHAR(255),
+  notes TEXT,
+  covers TEXT,
+  identifiers TEXT,
+  latest_revision INT,
+  revision INT,
+  created TEXT,
+  last_modified DATETIME,
   isbn10 VARCHAR(10) UNIQUE,
   isbn13 VARCHAR(13) UNIQUE,
-  cover_image_url VARCHAR(255),
-  publisher VARCHAR(255),
-  publish_date DATE,
+  publishers TEXT,
+  publish_date TEXT,
   page_count INT,
   binding VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_editions_work FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
-  INDEX idx_editions_work_id (work_id),
-  INDEX idx_editions_publisher (publisher)
+  -- foreign key and index on work_id removed
+  INDEX idx_editions_publishers (publishers)
 );

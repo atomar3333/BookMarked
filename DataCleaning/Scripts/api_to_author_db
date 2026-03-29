@@ -1,0 +1,111 @@
+import re
+import requests
+import json
+import mysql.connector
+
+
+
+def clean_bio(bio: str) -> str:
+    """
+    Cleans the bio field by:
+    1. Removing markdown-style reference links (e.g., [1]: ...)
+    2. Removing in-text reference markers (e.g., [1], [2], [3])
+    3. Removing markdown formatting (e.g., *italics*, **bold**)
+    4. Removing all square brackets
+    5. Removing '(Sources:' (case-insensitive)
+    6. Replacing escaped newlines (\r\n) with spaces
+    7. Trimming leading/trailing whitespace
+    8. Removing all text after the last full stop
+    """
+    if not bio:
+        return bio
+    # Remove markdown reference links at the end
+    bio = re.sub(r"\n?\[\d+\]:\s*\S+", "", bio)
+    # Remove in-text reference markers like [1], [2], etc.
+    bio = re.sub(r"\[\d+\]", "", bio)
+    # Remove markdown bold (**text**)
+    bio = re.sub(r"\*\*([^*]+)\*\*", r"\1", bio)
+    # Remove markdown italics (*text*) but not inside []
+    bio = re.sub(r"(?<!\[)\*([^*]+)\*", r"\1", bio)
+    # Remove markdown italics inside [] (e.g., [*text*])
+    bio = re.sub(r"\[\*([^*]+)\*\]", r"\1", bio)
+    # Remove (Sources: case-insensitive
+    bio = re.sub(r"\(Sources:.*?\)", "", bio, flags=re.IGNORECASE)
+    # Remove all square brackets
+    bio = re.sub(r"[\[\]]", "", bio)
+    # Replace escaped newlines with space
+    bio = bio.replace("\r\n", " ")
+    # Remove extra spaces
+    bio = re.sub(r"\s+", " ", bio)
+    bio = bio.strip()
+    # Remove all text after the last full stop
+    last_period = bio.rfind('.')
+    if last_period != -1:
+        bio = bio[:last_period+1]
+    return bio.strip()
+
+
+
+
+# Fetch the author JSON from Open Library
+url = "https://openlibrary.org/authors/OL1394865A.json"
+response = requests.get(url)
+author = response.json()
+
+# Prepare data for insertion
+ol_author_id = author.get("key", None)
+personal_name = author.get("personal_name", None)
+fuller_name = author.get("fuller_name", None)
+alternate_names = json.dumps(author.get("alternate_names", [])) if "alternate_names" in author else None
+birth_date = author.get("birth_date", None)
+death_date = author.get("death_date", None)
+photos = json.dumps(author.get("photos", [])) if "photos" in author else None
+created = author.get("created", {}).get("value", None)
+last_modified = author.get("last_modified", {}).get("value", None)
+author_name = author.get("name", None)
+bio = author.get("bio", None)
+if isinstance(bio, dict):
+    bio = bio.get("value", None)
+bio = clean_bio(bio) if bio else None
+
+# Connect to MySQL
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Samsung@24",
+    database="bookmarked"
+)
+cursor = conn.cursor()
+
+# Update profile picture URL
+photos_list = author.get("photos", [])
+profile_picture_url = None
+if photos_list and isinstance(photos_list, list) and photos_list[0] != -1:
+    profile_picture_url = f"https://covers.openlibrary.org/a/id/{photos_list[0]}-L.jpg"
+
+# Insert data into authors table
+sql = """
+INSERT INTO authors (
+    ol_author_id, personal_name, fuller_name, alternate_names,
+    birth_date, death_date, photos, created, last_modified, author_name, bio, profile_picture_url
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+ON DUPLICATE KEY UPDATE
+    personal_name=VALUES(personal_name),
+    fuller_name=VALUES(fuller_name),
+    alternate_names=VALUES(alternate_names),
+    birth_date=VALUES(birth_date),
+    death_date=VALUES(death_date),
+    photos=VALUES(photos),
+    created=VALUES(created),
+    last_modified=VALUES(last_modified),
+    author_name=VALUES(author_name),
+    bio=VALUES(bio),
+    profile_picture_url=VALUES(profile_picture_url)
+"""
+cursor.execute(sql, (
+    ol_author_id, personal_name, fuller_name, alternate_names,
+    birth_date, death_date, photos, created, last_modified, author_name, bio, profile_picture_url
+))
+conn.commit()
+cursor.close()
+conn.close()
