@@ -29,7 +29,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   color: var(--app-heading);
   letter-spacing: -0.02em;
 }
@@ -43,13 +54,16 @@ a {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--app-bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #334455;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #445566;
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { BookTileItem } from '../../types/books'
 import type { ReadingStatusValue } from '../../types/userPage'
 import ReadingStatusActions from '../../components/ReadingStatusActions'
+import fallbackCover from '../../assets/fallback_cover.png'
 
 interface BookTileProps {
   book: BookTileItem
@@ -22,11 +23,11 @@ function BookTile({
   return (
     <Card className="books-tile h-100">
       <Link to={`/books/${book.id}`} className="books-tile-link">
-        {book.coverImageUrl ? (
-          <img src={book.coverImageUrl} alt={`${book.title} cover`} className="books-tile-image" />
-        ) : (
-          <div className="books-tile-placeholder">No Cover</div>
-        )}
+        <img 
+          src={book.coverImageUrl || fallbackCover} 
+          alt={`${book.title} cover`} 
+          className="books-tile-image" 
+        />
       </Link>
       <Card.Body>
         <Card.Title className="books-tile-title">

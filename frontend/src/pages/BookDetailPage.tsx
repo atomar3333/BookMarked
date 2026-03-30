@@ -27,6 +27,7 @@ import { getBookLikeStats, likeBook, unlikeBook, getReviewLikeStats, likeReview,
 import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types/search'
 import type { ReadingStatusValue } from '../types/userPage'
 import ReadingStatusActions from '../components/ReadingStatusActions'
+import fallbackCover from '../assets/fallback_cover.png'
 
 interface RatingDistributionItem {
   stars: number
@@ -544,15 +545,11 @@ function BookDetailPage() {
       <Card.Body>
         <Row className="g-4 align-items-start">
           <Col md={4}>
-            {book.coverImageUrl ? (
-              <img
-                src={book.coverImageUrl}
-                alt={`${book.title} cover`}
-                className="book-cover-image"
-              />
-            ) : (
-              <div className="book-cover-placeholder">No Cover</div>
-            )}
+            <img
+              src={book.coverImageUrl || fallbackCover}
+              alt={`${book.title} cover`}
+              className="book-cover-image"
+            />
           </Col>
 
           <Col md={8}>
