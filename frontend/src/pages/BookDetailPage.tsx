@@ -16,6 +16,7 @@ import {
   createReview,
   deleteReview,
   getBookAverageRating,
+  getBookAuthors,
   getBookById,
   getBookReviews,
   getCurrentUser,
@@ -141,18 +142,25 @@ function BookDetailPage() {
         setRatingWarning(null)
         setLikeError(null)
 
-        const [bookResult, averageResult, reviewsResult, currentUserResult] = await Promise.allSettled([
+        const [bookResult, averageResult, reviewsResult, currentUserResult, authorsResult] = await Promise.allSettled([
           getBookById(parsedId),
           getBookAverageRating(parsedId),
           getBookReviews(parsedId),
           getCurrentUser(),
+          getBookAuthors(parsedId),
         ])
 
         if (bookResult.status === 'rejected') {
           throw bookResult.reason
         }
 
-        setBook(bookResult.value)
+        const bookData = bookResult.value
+        if (authorsResult.status === 'fulfilled' && authorsResult.value.length > 0) {
+          console.log('Fetched book authors:', authorsResult.value)
+          bookData.authors = authorsResult.value
+        }
+
+        setBook(bookData)
 
         // Load book like stats
         try {
@@ -482,6 +490,7 @@ function BookDetailPage() {
         await unlikeBook(parsedBookId)
       } else {
         await likeBook(parsedBookId)
+
       }
     } catch (err) {
       setBookLikedByCurrentUser(wasLiked)
@@ -549,19 +558,18 @@ function BookDetailPage() {
           <Col md={8}>
             <h2 className="mb-1">{book.title}</h2>
             <p className="text-muted mb-3">
-              {book.authors && book.authors.length > 0 ? (
+              {book.authors && book.authors.length > 0 && (
                 <>
                   by{' '}
-                  {book.authors.map((author, index) => (
-                    <span key={author.id}>
-                      {index > 0 ? ', ' : ''}
-                      <Link to={`/authors/${author.id}`}>{author.authorName}</Link>
-                    </span>
-                  ))}
-                </>
-              ) : (
-                <>
-                  by <Link to={`/authors?name=${encodeURIComponent(book.author)}`}>{book.author}</Link>
+                  {book.authors.map((author, index) => {
+                    console.log('Rendering author with id:', author.id)
+                    return (
+                      <span key={author.id}>
+                        {index > 0 ? ', ' : ''}
+                        <Link to={`/authors/${author.id}`}>{author.authorName}</Link>
+                      </span>
+                    )
+                  })}
                 </>
               )}
             </p>
@@ -790,70 +798,70 @@ function BookDetailPage() {
               <>
                 <ListGroup variant="flush" className="book-review-list">
                   {pagedReviews.map((review) => (
-                  <ListGroup.Item key={review.id} className="px-0">
-                    <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
-                      <div className="d-flex align-items-center gap-2">
-                        <Badge bg="dark">{formatRating(normalizeHalfStepRating(review.rating))}★</Badge>
-                        <span className="text-muted small">
-                          {reviewUserNames[review.userId] ?? `User #${review.userId}`}
-                        </span>
-                      </div>
-                      <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
-                    </div>
-                    <div className="mb-0">
-                      {review.reviewText && review.reviewText.trim().length > 0
-                        ? review.reviewText
-                        : 'No review text provided.'}
-                    </div>
-                    <div className="d-flex gap-2 align-items-center mt-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={
-                          reviewLikeStates[review.id]?.liked
-                            ? 'dark'
-                            : 'outline-secondary'
-                        }
-                        disabled={likingReviewId === review.id || !currentUser}
-                        onClick={() => handleLikeReview(review.id)}
-                        className="d-flex align-items-center gap-1"
-                      >
-                        <span className="small">
-                          {reviewLikeStates[review.id]?.liked ? '♥' : '♡'}
-                        </span>
-                        <span className="small">
-                          {likingReviewId === review.id ? 'Liking...' : 'Like'}
-                        </span>
-                        {(reviewLikeStates[review.id]?.count ?? 0) > 0 && (
-                          <span className="small">
-                            ({reviewLikeStates[review.id]?.count})
+                    <ListGroup.Item key={review.id} className="px-0">
+                      <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <Badge bg="dark">{formatRating(normalizeHalfStepRating(review.rating))}★</Badge>
+                          <span className="text-muted small">
+                            {reviewUserNames[review.userId] ?? `User #${review.userId}`}
                           </span>
-                        )}
-                      </Button>
-                    </div>
-                    {currentUser && review.userId === currentUser.id && (
-                      <div className="d-flex gap-2 mt-3">
+                        </div>
+                        <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
+                      </div>
+                      <div className="mb-0">
+                        {review.reviewText && review.reviewText.trim().length > 0
+                          ? review.reviewText
+                          : 'No review text provided.'}
+                      </div>
+                      <div className="d-flex gap-2 align-items-center mt-2">
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline-dark"
-                          disabled={submittingReview || deletingReview}
-                          onClick={() => handleEditExistingReview(review)}
+                          variant={
+                            reviewLikeStates[review.id]?.liked
+                              ? 'dark'
+                              : 'outline-secondary'
+                          }
+                          disabled={likingReviewId === review.id || !currentUser}
+                          onClick={() => handleLikeReview(review.id)}
+                          className="d-flex align-items-center gap-1"
                         >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline-danger"
-                          disabled={submittingReview || deletingReview}
-                          onClick={() => handleDeleteReview(review.id)}
-                        >
-                          {deletingReview ? 'Deleting...' : 'Delete'}
+                          <span className="small">
+                            {reviewLikeStates[review.id]?.liked ? '♥' : '♡'}
+                          </span>
+                          <span className="small">
+                            {likingReviewId === review.id ? 'Liking...' : 'Like'}
+                          </span>
+                          {(reviewLikeStates[review.id]?.count ?? 0) > 0 && (
+                            <span className="small">
+                              ({reviewLikeStates[review.id]?.count})
+                            </span>
+                          )}
                         </Button>
                       </div>
-                    )}
-                  </ListGroup.Item>
+                      {currentUser && review.userId === currentUser.id && (
+                        <div className="d-flex gap-2 mt-3">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline-dark"
+                            disabled={submittingReview || deletingReview}
+                            onClick={() => handleEditExistingReview(review)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline-danger"
+                            disabled={submittingReview || deletingReview}
+                            onClick={() => handleDeleteReview(review.id)}
+                          >
+                            {deletingReview ? 'Deleting...' : 'Delete'}
+                          </Button>
+                        </div>
+                      )}
+                    </ListGroup.Item>
                   ))}
                 </ListGroup>
 

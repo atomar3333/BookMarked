@@ -54,6 +54,11 @@ export async function getBookById(bookId: number): Promise<BookDetail> {
   return response.data
 }
 
+export async function getBookAuthors(bookId: number): Promise<Array<{ id: number; authorName: string }>> {
+  const response = await apiClient.get<Array<{ id: number; authorName: string }>>(`/api/book-authors/books/${bookId}/authors`)
+  return response.data
+}
+
 export async function getBookAverageRating(bookId: number): Promise<number> {
   const response = await apiClient.get<number>(`/api/reviews/books/${bookId}/average-rating`)
   return response.data
