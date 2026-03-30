@@ -28,7 +28,6 @@ import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types
 import type { ReadingStatusValue } from '../types/userPage'
 import ReadingStatusActions from '../components/ReadingStatusActions'
 import fallbackCover from '../assets/fallback_cover.png'
-import LikeButton from '../components/LikeButton'
 
 interface RatingDistributionItem {
   stars: number
@@ -542,9 +541,21 @@ function BookDetailPage() {
   }
 
   return (
-    <Card className="book-template-card shadow-sm">
-      <Card.Body>
-        <Row className="g-4 align-items-start">
+    <div className="book-detail-page">
+      <div className="book-banner-wrapper">
+        <div
+          className="book-banner-sharp"
+          style={{ backgroundImage: `url(${book.coverImageUrl || fallbackCover})` }}
+        />
+        <div
+          className="book-banner-blur"
+          style={{ backgroundImage: `url(${book.coverImageUrl || fallbackCover})` }}
+        />
+      </div>
+      <div className="book-detail-content">
+        <Card className="book-template-card shadow-sm">
+          <Card.Body>
+            <Row className="g-4 align-items-start">
           <Col md={4}>
             <img
               src={book.coverImageUrl || fallbackCover}
@@ -596,17 +607,17 @@ function BookDetailPage() {
             )}
 
             <div className="mb-3">
-              <LikeButton
-                key={`like-btn-${book.id}`}
-                initialIsLiked={bookLikedByCurrentUser}
-                initialLikeCount={bookLikeCount}
-                onLike={async () => await handleLikeBook()}
-                onUnlike={async () => {
-                  /* handleLikeBook acts as a toggle in the current implementation */
-                  await handleLikeBook()
-                }}
-                showText={true}
-              />
+              <Button
+                variant={bookLikedByCurrentUser ? 'dark' : 'outline-dark'}
+                size="sm"
+                disabled={likingBook || !currentUser}
+                onClick={handleLikeBook}
+                className="d-flex align-items-center gap-2"
+              >
+                <span aria-hidden="true">{bookLikedByCurrentUser ? '♥' : '♡'}</span>
+                <span>{likingBook ? 'Liking...' : 'Like'}</span>
+                {bookLikeCount > 0 && <span className="small">({bookLikeCount})</span>}
+              </Button>
               {likeError && <div className="text-danger small mt-2">{likeError}</div>}
             </div>
 
@@ -894,6 +905,8 @@ function BookDetailPage() {
         </Row>
       </Card.Body>
     </Card>
+      </div>
+    </div>
   )
 }
 

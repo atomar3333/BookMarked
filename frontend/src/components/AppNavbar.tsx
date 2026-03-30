@@ -2,12 +2,16 @@ import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../app/AuthProvider'
 
 function AppNavbar() {
   const { isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Check if we're on a book detail page (e.g. /books/123)
+  const isBookDetailPage = /^\/books\/\d+/.test(location.pathname)
 
   const handleLogout = () => {
     logout()
@@ -15,7 +19,11 @@ function AppNavbar() {
   }
 
   return (
-    <Navbar variant="dark" expand="lg" className="app-navbar py-2">
+    <Navbar
+      variant="dark"
+      expand="lg"
+      className={`app-navbar py-2${isBookDetailPage ? ' navbar-transparent' : ''}`}
+    >
       <Container>
         <Navbar.Brand as={Link} to="/">
           BookMarked
