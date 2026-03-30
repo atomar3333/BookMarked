@@ -556,26 +556,25 @@ function BookDetailPage() {
         <Card className="book-template-card shadow-sm">
           <Card.Body>
             <Row className="g-4 align-items-start">
-          <Col md={4}>
+          <Col md={3} lg={3}>
             <img
               src={book.coverImageUrl || fallbackCover}
               alt={`${book.title} cover`}
-              className="book-cover-image"
+              className="book-cover-image shadow"
             />
           </Col>
 
-          <Col md={8}>
-            <h2 className="mb-1">{book.title}</h2>
-            <p className="text-muted mb-3">
+          <Col md={6} lg={6}>
+            <h2 className="mb-1 text-white">{book.title}</h2>
+            <p className="text-muted mb-3 fs-5">
               {book.authors && book.authors.length > 0 && (
                 <>
                   by{' '}
                   {book.authors.map((author, index) => {
-                    console.log('Rendering author with id:', author.id)
                     return (
                       <span key={author.id}>
                         {index > 0 ? ', ' : ''}
-                        <Link to={`/authors/${author.id}`}>{author.authorName}</Link>
+                        <Link to={`/authors/${author.id}`} className="text-decoration-none text-light border-bottom border-secondary pb-1">{author.authorName}</Link>
                       </span>
                     )
                   })}
@@ -584,10 +583,10 @@ function BookDetailPage() {
             </p>
 
             {book.genres && book.genres.length > 0 && (
-              <div className="mb-3 d-flex align-items-center flex-wrap gap-2">
-                <span className="text-muted small">Genres:</span>
+              <div className="mb-4 d-flex align-items-center flex-wrap gap-2">
+                <span className="text-muted small text-uppercase tracking-wider">Genres:</span>
                 {book.genres.map((genre) => (
-                  <Badge key={genre.id} bg="secondary" pill>
+                  <Badge key={genre.id} bg="dark" className="border border-secondary">
                     <Link to={`/genres/${genre.id}`} className="text-white text-decoration-none">
                       {genre.genreName}
                     </Link>
@@ -596,63 +595,14 @@ function BookDetailPage() {
               </div>
             )}
 
-            {currentUser && (
-              <div className="mb-3">
-                <ReadingStatusActions
-                  currentStatus={currentStatus}
-                  isSaving={savingStatus}
-                  onSetStatus={handleSetStatus}
-                />
-              </div>
-            )}
-
-            <div className="mb-3">
-              <Button
-                variant={bookLikedByCurrentUser ? 'dark' : 'outline-dark'}
-                size="sm"
-                disabled={likingBook || !currentUser}
-                onClick={handleLikeBook}
-                className="d-flex align-items-center gap-2"
-              >
-                <span aria-hidden="true">{bookLikedByCurrentUser ? '♥' : '♡'}</span>
-                <span>{likingBook ? 'Liking...' : 'Like'}</span>
-                {bookLikeCount > 0 && <span className="small">({bookLikeCount})</span>}
-              </Button>
-              {likeError && <div className="text-danger small mt-2">{likeError}</div>}
-            </div>
-
-            {ratingWarning && (
-              <Alert variant="warning" className="py-2 mb-3">
-                {ratingWarning}
-              </Alert>
-            )}
-
-            <div className="book-rating-summary mb-3">
-              <h6 className="mb-1">Average Rating</h6>
-              <div className="book-average-rating">
-                {averageRating !== null ? averageRating.toFixed(1) : 'N/A'}
-                <span className="text-muted small"> / 5</span>
-              </div>
-              <div className="text-muted small">Based on {reviews.length} review(s)</div>
-            </div>
-
-            <div className="book-rating-distribution mb-4">
-              <h6 className="mb-2">Rating Distribution</h6>
-              {distribution.map((item) => (
-                <div key={item.stars} className="d-flex align-items-center gap-2 mb-2">
-                  <div className="rating-label">{item.stars}★</div>
-                  <ProgressBar now={item.percentage} className="flex-grow-1" />
-                  <div className="rating-count text-muted small">{item.count}</div>
-                </div>
-              ))}
-            </div>
-
-            <h6>Description</h6>
-            <p className="mb-4">
+            <h6 className="text-uppercase tracking-wider text-muted small mt-4 mb-2">Description</h6>
+            <p className="mb-4" style={{ lineHeight: '1.6', fontSize: '1.05rem', color: '#9ab' }}>
               {book.description && book.description.trim().length > 0
                 ? book.description
                 : 'No description available for this book yet.'}
             </p>
+
+
 
             <h6 className="mb-3">Add To List</h6>
             {listError && <Alert variant="danger">{listError}</Alert>}
@@ -901,6 +851,81 @@ function BookDetailPage() {
                 </div>
               </>
             )}
+          </Col>
+
+          {/* ACTION PANEL COLUMN */}
+          <Col md={3} lg={3}>
+            <div className="action-panel p-3 mb-4 rounded d-flex flex-column gap-3" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+              
+              <div className="d-flex flex-column align-items-center mb-2">
+                {currentUser ? (
+                  <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Read Or Log</span>
+                ) : (
+                  <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Sign In To Log</span>
+                )}
+                <div className="d-flex gap-2 w-100 justify-content-between">
+                  <Button
+                    variant={bookLikedByCurrentUser ? 'success' : 'outline-secondary'}
+                    disabled={likingBook || !currentUser}
+                    onClick={handleLikeBook}
+                    className="d-flex flex-column align-items-center justify-content-center p-2 border-0"
+                    style={{ backgroundColor: 'transparent', flex: 1 }}
+                  >
+                    <span aria-hidden="true" className={`fs-4 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                      {bookLikedByCurrentUser ? '♥' : '♡'}
+                    </span>
+                    <div>
+                      <span className={`small fw-medium ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                        {likingBook ? '...' : (bookLikedByCurrentUser ? 'Liked' : 'Like')}
+                      </span>
+                      {bookLikeCount > 0 && (
+                        <span className={`small ms-1 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                          ({bookLikeCount})
+                        </span>
+                      )}
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {likeError && <div className="text-danger small text-center">{likeError}</div>}
+
+              {currentUser && (
+                <div className="border-top border-secondary pt-3">
+                  <ReadingStatusActions
+                    currentStatus={currentStatus}
+                    isSaving={savingStatus}
+                    onSetStatus={handleSetStatus}
+                  />
+                </div>
+              )}
+            </div>
+
+            {ratingWarning && (
+              <Alert variant="warning" className="py-2 mb-3">
+                {ratingWarning}
+              </Alert>
+            )}
+
+            <div className="book-rating-summary p-3 mb-3 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+              <h6 className="mb-2 text-uppercase tracking-wider text-muted small">Average Rating</h6>
+              <div className="book-average-rating d-flex align-items-baseline gap-2 text-white fs-3 fw-bold">
+                {averageRating !== null ? averageRating.toFixed(1) : 'N/A'}
+                <span className="text-muted small fs-6">/ 5</span>
+              </div>
+              <div className="text-muted small mt-1">Based on {reviews.length} review(s)</div>
+            </div>
+
+            <div className="book-rating-distribution mb-5 mt-4">
+              <h6 className="mb-3 text-uppercase tracking-wider text-muted small">Rating Distribution</h6>
+              {distribution.map((item) => (
+                <div key={item.stars} className="d-flex align-items-center gap-3 mb-2">
+                  <div className="rating-label text-muted small" style={{ width: '24px' }}>{item.stars}★</div>
+                  <ProgressBar now={item.percentage} className="flex-grow-1" style={{ height: '6px' }} />
+                  <div className="rating-count text-muted small" style={{ width: '24px', textAlign: 'right' }}>{item.count}</div>
+                </div>
+              ))}
+            </div>
           </Col>
         </Row>
       </Card.Body>
