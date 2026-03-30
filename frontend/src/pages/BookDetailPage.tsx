@@ -28,6 +28,7 @@ import type { BookDetail, ListItem, ReviewItem, UserProfileItem } from '../types
 import type { ReadingStatusValue } from '../types/userPage'
 import ReadingStatusActions from '../components/ReadingStatusActions'
 import fallbackCover from '../assets/fallback_cover.png'
+import LikeButton from '../components/LikeButton'
 
 interface RatingDistributionItem {
   stars: number
@@ -595,17 +596,17 @@ function BookDetailPage() {
             )}
 
             <div className="mb-3">
-              <Button
-                variant={bookLikedByCurrentUser ? 'dark' : 'outline-dark'}
-                size="sm"
-                disabled={likingBook || !currentUser}
-                onClick={handleLikeBook}
-                className="d-flex align-items-center gap-2"
-              >
-                <span aria-hidden="true">{bookLikedByCurrentUser ? '♥' : '♡'}</span>
-                <span>{likingBook ? 'Liking...' : 'Like'}</span>
-                {bookLikeCount > 0 && <span className="small">({bookLikeCount})</span>}
-              </Button>
+              <LikeButton
+                key={`like-btn-${book.id}`}
+                initialIsLiked={bookLikedByCurrentUser}
+                initialLikeCount={bookLikeCount}
+                onLike={async () => await handleLikeBook()}
+                onUnlike={async () => {
+                  /* handleLikeBook acts as a toggle in the current implementation */
+                  await handleLikeBook()
+                }}
+                showText={true}
+              />
               {likeError && <div className="text-danger small mt-2">{likeError}</div>}
             </div>
 

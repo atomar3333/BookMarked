@@ -235,11 +235,14 @@ a {
   border: 1px solid var(--app-border);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   background-color: var(--app-hover-bg);
+  position: relative;
+  z-index: 1;
 }
 
-.books-tile:hover {
+.books-tile:hover, .books-tile:focus-within {
   transform: translateY(-3px);
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+  z-index: 10;
 }
 
 .books-tile-image {

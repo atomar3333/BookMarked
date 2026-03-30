@@ -1,9 +1,12 @@
 import Card from 'react-bootstrap/Card'
 import { Link } from 'react-router-dom'
+import { Dropdown } from 'react-bootstrap'
+import { ThreeDots } from 'react-bootstrap-icons'
 import type { BookTileItem } from '../../types/books'
 import type { ReadingStatusValue } from '../../types/userPage'
-import ReadingStatusActions from '../../components/ReadingStatusActions'
 import fallbackCover from '../../assets/fallback_cover.png'
+import LikeButton from '../../components/LikeButton'
+import { likeBook, unlikeBook } from '../../api/likes'
 
 interface BookTileProps {
   book: BookTileItem
@@ -29,13 +32,13 @@ function BookTile({
           className="books-tile-image" 
         />
       </Link>
-      <Card.Body>
+      <Card.Body className="d-flex flex-column">
         <Card.Title className="books-tile-title">
           <Link to={`/books/${book.id}`} className="books-tile-link">
             {book.title}
           </Link>
         </Card.Title>
-        <Card.Text className="text-muted mb-3">
+        <Card.Text className="text-muted mb-auto">
           {book.authors && book.authors.length > 0 && (
             <>
               by{' '}
@@ -49,13 +52,47 @@ function BookTile({
           )}
         </Card.Text>
 
-        {showStatusActions && onSetStatus && (
-          <ReadingStatusActions
-            currentStatus={currentStatus}
-            isSaving={isSavingStatus}
-            onSetStatus={(status) => onSetStatus(book.id, status)}
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <LikeButton
+            onLike={() => likeBook(book.id)}
+            onUnlike={() => unlikeBook(book.id)}
           />
-        )}
+
+          {showStatusActions && onSetStatus && (
+            <Dropdown>
+              <Dropdown.Toggle 
+                variant="outline-secondary" 
+                size="sm" 
+                id={`dropdown-${book.id}`}
+                disabled={isSavingStatus}
+                title="Reading Status Options"
+              >
+                <ThreeDots />
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu align="end">
+                <Dropdown.Item 
+                  active={currentStatus === 'WANT_TO_READ'}
+                  onClick={() => onSetStatus(book.id, 'WANT_TO_READ')}
+                >
+                  Want to Read
+                </Dropdown.Item>
+                <Dropdown.Item 
+                  active={currentStatus === 'CURRENTLY_READING'}
+                  onClick={() => onSetStatus(book.id, 'CURRENTLY_READING')}
+                >
+                  Reading
+                </Dropdown.Item>
+                <Dropdown.Item 
+                  active={currentStatus === 'READ'}
+                  onClick={() => onSetStatus(book.id, 'READ')}
+                >
+                  Read
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+        </div>
       </Card.Body>
     </Card>
   )
