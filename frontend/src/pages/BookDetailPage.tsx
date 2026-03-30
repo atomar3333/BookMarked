@@ -673,80 +673,6 @@ function BookDetailPage() {
               </Form>
             </div>
 
-            <h6 className="mb-3">{existingReview ? 'Edit Your Review' : 'Add Your Review'}</h6>
-            {reviewError && <Alert variant="danger">{reviewError}</Alert>}
-            {reviewSuccess && <Alert variant="success">{reviewSuccess}</Alert>}
-            <Form onSubmit={handleReviewSubmit} className="mb-4">
-              <div className="mb-3">
-                <div className="small text-muted mb-2">Your rating</div>
-                <div className="star-rating-selector" role="radiogroup" aria-label="Select rating from 1 to 5 in 0.5 steps">
-                  {[1, 2, 3, 4, 5].map((starNumber) => {
-                    const fillPercentage = getStarFillPercentage(starNumber, selectedRating)
-                    const leftHalfValue = Math.max(1, starNumber - 0.5)
-                    const rightHalfValue = starNumber
-
-                    return (
-                      <div key={starNumber} className="star-split-control">
-                        <button
-                          type="button"
-                          className="star-half-button left"
-                          onClick={() => setSelectedRating(leftHalfValue)}
-                          aria-label={`Set rating to ${formatRating(leftHalfValue)} stars`}
-                        />
-                        <button
-                          type="button"
-                          className="star-half-button right"
-                          onClick={() => setSelectedRating(rightHalfValue)}
-                          aria-label={`Set rating to ${formatRating(rightHalfValue)} stars`}
-                        />
-                        <span className="star-icon" aria-hidden="true">
-                          <span className="star-icon-base">★</span>
-                          <span className="star-icon-fill" style={{ width: `${fillPercentage}%` }}>
-                            ★
-                          </span>
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="small text-muted mt-2">
-                  Selected: {selectedRating > 0 ? `${formatRating(selectedRating)} / 5` : 'Not selected'}
-                </div>
-              </div>
-
-              <Form.Group className="mb-3" controlId="review-text">
-                <Form.Label>Review</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  value={reviewText}
-                  onChange={(event) => setReviewText(event.target.value)}
-                  placeholder="Write a short review"
-                />
-              </Form.Group>
-
-              <div className="d-flex flex-wrap gap-2">
-                <Button type="submit" disabled={submittingReview || deletingReview}>
-                  {submittingReview
-                    ? existingReview
-                      ? 'Saving...'
-                      : 'Submitting...'
-                    : existingReview
-                      ? 'Save Changes'
-                      : 'Submit Review'}
-                </Button>
-                {existingReview && (
-                  <Button
-                    type="button"
-                    variant="outline-danger"
-                    disabled={submittingReview || deletingReview}
-                    onClick={() => handleDeleteReview(existingReview.id)}
-                  >
-                    {deletingReview ? 'Deleting...' : 'Delete Review'}
-                  </Button>
-                )}
-              </div>
-            </Form>
 
             <h6 className="mb-3">Reviews</h6>
             {reviews.length === 0 ? (
@@ -906,6 +832,85 @@ function BookDetailPage() {
                 {ratingWarning}
               </Alert>
             )}
+
+            <div className="book-review-panel p-3 mb-4 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+              <h6 className="mb-3 text-uppercase tracking-wider text-muted small">{existingReview ? 'Edit Your Review' : 'Add Your Review'}</h6>
+              {reviewError && <Alert variant="danger" className="p-2 small">{reviewError}</Alert>}
+              {reviewSuccess && <Alert variant="success" className="p-2 small">{reviewSuccess}</Alert>}
+              <Form onSubmit={handleReviewSubmit} className="mb-0">
+                <div className="mb-3">
+                  <div className="small text-muted mb-2">Your rating</div>
+                  <div className="star-rating-selector" role="radiogroup" aria-label="Select rating from 1 to 5 in 0.5 steps">
+                    {[1, 2, 3, 4, 5].map((starNumber) => {
+                      const fillPercentage = getStarFillPercentage(starNumber, selectedRating)
+                      const leftHalfValue = Math.max(1, starNumber - 0.5)
+                      const rightHalfValue = starNumber
+
+                      return (
+                        <div key={starNumber} className="star-split-control">
+                          <button
+                            type="button"
+                            className="star-half-button left"
+                            onClick={() => setSelectedRating(leftHalfValue)}
+                            aria-label={`Set rating to ${formatRating(leftHalfValue)} stars`}
+                          />
+                          <button
+                            type="button"
+                            className="star-half-button right"
+                            onClick={() => setSelectedRating(rightHalfValue)}
+                            aria-label={`Set rating to ${formatRating(rightHalfValue)} stars`}
+                          />
+                          <span className="star-icon" aria-hidden="true">
+                            <span className="star-icon-base">★</span>
+                            <span className="star-icon-fill" style={{ width: `${fillPercentage}%` }}>
+                              ★
+                            </span>
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="small text-muted mt-1">
+                    {selectedRating > 0 ? `${formatRating(selectedRating)} / 5` : 'Not selected'}
+                  </div>
+                </div>
+
+                <Form.Group className="mb-3" controlId="review-text">
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={reviewText}
+                    onChange={(event) => setReviewText(event.target.value)}
+                    placeholder="Write a short review..."
+                    className="bg-dark text-light border-secondary"
+                  />
+                </Form.Group>
+
+                <div className="d-flex flex-column gap-2">
+                  <Button type="submit" variant="success" size="sm" className="w-100" disabled={submittingReview || deletingReview}>
+                    {submittingReview
+                      ? existingReview
+                        ? 'Saving...'
+                        : 'Submitting...'
+                      : existingReview
+                        ? 'Save Changes'
+                        : 'Submit Review'}
+                  </Button>
+                  {existingReview && (
+                    <Button
+                      type="button"
+                      variant="outline-danger"
+                      size="sm"
+                      className="w-100"
+                      disabled={submittingReview || deletingReview}
+                      onClick={() => handleDeleteReview(existingReview.id)}
+                    >
+                      {deletingReview ? 'Deleting...' : 'Delete Review'}
+                    </Button>
+                  )}
+                </div>
+              </Form>
+            </div>
 
             <div className="book-rating-summary p-3 mb-3 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
               <h6 className="mb-2 text-uppercase tracking-wider text-muted small">Average Rating</h6>
