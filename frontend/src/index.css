@@ -1,11 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --app-nav-bg: #0f1215;
+  --app-bg: #1c2228;
+  --app-text: #8c9b9f;
+  --app-heading: #ffffff;
+  --app-accent-green: #00e054;
+  --app-accent-orange: #ff8000;
+  --app-accent-blue: #40bcf4;
+  --app-hover-bg: #28313a;
+  --app-border: #384654;
+}
+
+[data-bs-theme='dark'] {
+  --bs-body-bg: var(--app-bg);
+  --bs-body-color: var(--app-text);
+  --bs-primary: var(--app-accent-green);
+  --bs-link-color: var(--app-text);
+  --bs-link-hover-color: var(--app-heading);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #f5f7fb;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  color: var(--app-heading);
+  letter-spacing: -0.02em;
+}
+
+a {
+  transition: color 0.2s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--app-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #334455;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #445566;
 }
 
 #root {
@@ -155,9 +201,9 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--app-border);
   border-radius: 0.5rem;
-  background: #fff;
+  background: var(--app-hover-bg);
 }
 
 .books-grid {
@@ -172,13 +218,14 @@ body {
 }
 
 .books-tile {
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--app-border);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: var(--app-hover-bg);
 }
 
 .books-tile:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
 }
 
 .books-tile-image {
@@ -192,8 +239,8 @@ body {
 .books-tile-placeholder {
   width: 100%;
   aspect-ratio: 2 / 3;
-  background: #e9ecef;
-  color: #6c757d;
+  background: #2a333d;
+  color: var(--app-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,6 +250,7 @@ body {
 .books-tile-title {
   font-size: 1rem;
   margin-bottom: 0.25rem;
+  color: var(--app-heading);
 }
 
 .lists-grid {
@@ -217,18 +265,20 @@ body {
 }
 
 .lists-tile {
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--app-border);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: var(--app-hover-bg);
 }
 
 .lists-tile:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
 }
 
 .lists-tile-title {
   font-size: 1.05rem;
   margin-bottom: 0.35rem;
+  color: var(--app-heading);
 }
 
 .lists-tile-description {
@@ -241,6 +291,31 @@ body {
 }
 
 .user-want-card {
-  border: 1px solid #dee2e6;
-  background: #fdfefe;
+  border: 1px solid var(--app-border);
+  background: var(--app-hover-bg);
+}
+
+.app-navbar {
+  background-color: var(--app-nav-bg) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.app-navbar .nav-link {
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--app-text) !important;
+  transition: color 0.2s ease;
+}
+
+.app-navbar .nav-link:hover {
+  color: var(--app-heading) !important;
+}
+
+.app-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+  color: var(--app-heading) !important;
 }

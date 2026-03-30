@@ -15,7 +15,7 @@ function AppNavbar() {
   }
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg">
+    <Navbar variant="dark" expand="lg" className="app-navbar py-2">
       <Container>
         <Navbar.Brand as={Link} to="/">
           BookMarked
