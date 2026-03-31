@@ -556,387 +556,395 @@ function BookDetailPage() {
         <Card className="book-template-card shadow-sm">
           <Card.Body>
             <Row className="g-4 align-items-start">
-          <Col md={3} lg={3}>
-            <img
-              src={book.coverImageUrl || fallbackCover}
-              alt={`${book.title} cover`}
-              className="book-cover-image shadow"
-            />
-          </Col>
+              <Col md={3} lg={3}>
+                <img
+                  src={book.coverImageUrl || fallbackCover}
+                  alt={`${book.title} cover`}
+                  className="book-cover-image shadow"
+                />
+              </Col>
 
-          <Col md={6} lg={6}>
-            <h2 className="mb-1 text-white">{book.title}</h2>
-            <p className="text-muted mb-3 fs-5">
-              {book.authors && book.authors.length > 0 && (
-                <>
-                  by{' '}
-                  {book.authors.map((author, index) => {
-                    return (
-                      <span key={author.id}>
-                        {index > 0 ? ', ' : ''}
-                        <Link to={`/authors/${author.id}`} className="text-decoration-none text-light border-bottom border-secondary pb-1">{author.authorName}</Link>
-                      </span>
-                    )
-                  })}
-                </>
-              )}
-            </p>
+              <Col md={6} lg={6}>
+                <h2 className="mb-1 text-white">{book.title}</h2>
+                <p className="text-muted mb-3 fs-5">
+                  {book.authors && book.authors.length > 0 && (
+                    <>
+                      by{' '}
+                      {book.authors.map((author, index) => {
+                        return (
+                          <span key={author.id}>
+                            {index > 0 ? ', ' : ''}
+                            <Link to={`/authors/${author.id}`} className="text-decoration-none text-light border-bottom border-secondary pb-1">{author.authorName}</Link>
+                          </span>
+                        )
+                      })}
+                    </>
+                  )}
+                </p>
 
-            {book.genres && book.genres.length > 0 && (
-              <div className="mb-4 d-flex align-items-center flex-wrap gap-2">
-                <span className="text-muted small text-uppercase tracking-wider">Genres:</span>
-                {book.genres.map((genre) => (
-                  <Badge key={genre.id} bg="dark" className="border border-secondary">
-                    <Link to={`/genres/${genre.id}`} className="text-white text-decoration-none">
-                      {genre.genreName}
-                    </Link>
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            <h6 className="text-uppercase tracking-wider text-muted small mt-4 mb-2">Description</h6>
-            <p className="mb-4" style={{ lineHeight: '1.6', fontSize: '1.05rem', color: '#9ab' }}>
-              {book.description && book.description.trim().length > 0
-                ? book.description
-                : 'No description available for this book yet.'}
-            </p>
-
-
-
-            <h6 className="mb-3">Add To List</h6>
-            {listError && <Alert variant="danger">{listError}</Alert>}
-            {listSuccess && <Alert variant="success">{listSuccess}</Alert>}
-
-            <div className="book-list-section mb-4">
-              <div className="mb-3">
-                <div className="small text-muted mb-2">Add to an existing list</div>
-                {listLoading ? (
-                  <div className="d-flex align-items-center gap-2">
-                    <Spinner animation="border" size="sm" />
-                    <span>Loading your lists...</span>
-                  </div>
-                ) : lists.length === 0 ? (
-                  <Alert variant="light" className="mb-0">
-                    You do not have any lists yet. Create one below.
-                  </Alert>
-                ) : (
-                  <div className="book-list-grid">
-                    {lists.map((list) => (
-                      <div key={list.id} className="book-list-item">
-                        <div>
-                          <div className="fw-semibold">{list.title}</div>
-                          {list.description && (
-                            <div className="text-muted small">{list.description}</div>
-                          )}
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline-dark"
-                          disabled={activeListId === list.id || creatingList}
-                          onClick={() => handleAddToExistingList(list.id)}
-                        >
-                          {activeListId === list.id ? 'Adding...' : 'Add'}
-                        </Button>
-                      </div>
+                {book.genres && book.genres.length > 0 && (
+                  <div className="mb-4 d-flex align-items-center flex-wrap gap-2">
+                    <span className="text-muted small text-uppercase tracking-wider">Genres:</span>
+                    {book.genres.map((genre) => (
+                      <Badge key={genre.id} bg="dark" className="border border-secondary">
+                        <Link to={`/genres/${genre.id}`} className="text-white text-decoration-none">
+                          {genre.genreName}
+                        </Link>
+                      </Badge>
                     ))}
                   </div>
                 )}
-              </div>
 
-              <Form onSubmit={handleCreateListAndAdd}>
-                <div className="small text-muted mb-2">Create a new list</div>
-                <Form.Group className="mb-3" controlId="new-list-title">
-                  <Form.Label>List title</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={newListTitle}
-                    onChange={(event) => setNewListTitle(event.target.value)}
-                    placeholder="Favorites, Weekend Reads, Sci-Fi..."
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3" controlId="new-list-description">
-                  <Form.Label>Description (optional)</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={newListDescription}
-                    onChange={(event) => setNewListDescription(event.target.value)}
-                    placeholder="What is this list for?"
-                  />
-                </Form.Group>
-
-                <Button type="submit" disabled={creatingList || activeListId !== null}>
-                  {creatingList ? 'Creating list...' : 'Create List And Add Book'}
-                </Button>
-              </Form>
-            </div>
+                <h6 className="text-uppercase tracking-wider text-muted small mt-4 mb-2">Description</h6>
+                <p className="mb-4" style={{ lineHeight: '1.6', fontSize: '1.05rem', color: '#9ab' }}>
+                  {book.description && book.description.trim().length > 0
+                    ? book.description
+                    : 'No description available for this book yet.'}
+                </p>
 
 
-            <h6 className="mb-3">Reviews</h6>
-            {reviews.length === 0 ? (
-              <Alert variant="light" className="mb-0">
-                No reviews yet for this book.
-              </Alert>
-            ) : (
-              <>
-                <ListGroup variant="flush" className="book-review-list">
-                  {pagedReviews.map((review) => (
-                    <ListGroup.Item key={review.id} className="px-0">
-                      <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
-                        <div className="d-flex align-items-center gap-2">
-                          <Badge bg="dark">{formatRating(normalizeHalfStepRating(review.rating))}★</Badge>
-                          <span className="text-muted small">
-                            {reviewUserNames[review.userId] ?? `User #${review.userId}`}
-                          </span>
-                        </div>
-                        <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
+
+                <h6 className="mb-3">Add To List</h6>
+                {listError && <Alert variant="danger">{listError}</Alert>}
+                {listSuccess && <Alert variant="success">{listSuccess}</Alert>}
+
+                <div className="book-list-section mb-4">
+                  <div className="mb-3">
+                    <div className="small text-muted mb-2">Add to an existing list</div>
+                    {listLoading ? (
+                      <div className="d-flex align-items-center gap-2">
+                        <Spinner animation="border" size="sm" />
+                        <span>Loading your lists...</span>
                       </div>
-                      <div className="mb-0">
-                        {review.reviewText && review.reviewText.trim().length > 0
-                          ? review.reviewText
-                          : 'No review text provided.'}
+                    ) : lists.length === 0 ? (
+                      <Alert variant="light" className="mb-0">
+                        You do not have any lists yet. Create one below.
+                      </Alert>
+                    ) : (
+                      <div className="book-list-grid">
+                        {lists.map((list) => (
+                          <div key={list.id} className="book-list-item">
+                            <div>
+                              <div className="fw-semibold">{list.title}</div>
+                              {list.description && (
+                                <div className="text-muted small">{list.description}</div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline-dark"
+                              disabled={activeListId === list.id || creatingList}
+                              onClick={() => handleAddToExistingList(list.id)}
+                            >
+                              {activeListId === list.id ? 'Adding...' : 'Add'}
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                      <div className="d-flex gap-2 align-items-center mt-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={
-                            reviewLikeStates[review.id]?.liked
-                              ? 'dark'
-                              : 'outline-secondary'
-                          }
-                          disabled={likingReviewId === review.id || !currentUser}
-                          onClick={() => handleLikeReview(review.id)}
-                          className="d-flex align-items-center gap-1"
-                        >
-                          <span className="small">
-                            {reviewLikeStates[review.id]?.liked ? '♥' : '♡'}
+                    )}
+                  </div>
+
+                  <Form onSubmit={handleCreateListAndAdd}>
+                    <div className="small text-muted mb-2">Create a new list</div>
+                    <Form.Group className="mb-3" controlId="new-list-title">
+                      <Form.Label>List title</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={newListTitle}
+                        onChange={(event) => setNewListTitle(event.target.value)}
+                        placeholder="Favorites, Weekend Reads, Sci-Fi..."
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="new-list-description">
+                      <Form.Label>Description (optional)</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={newListDescription}
+                        onChange={(event) => setNewListDescription(event.target.value)}
+                        placeholder="What is this list for?"
+                      />
+                    </Form.Group>
+
+                    <Button type="submit" disabled={creatingList || activeListId !== null}>
+                      {creatingList ? 'Creating list...' : 'Create List And Add Book'}
+                    </Button>
+                  </Form>
+                </div>
+
+
+                <h6 className="mb-3">Reviews</h6>
+                {reviews.length === 0 ? (
+                  <Alert variant="light" className="mb-0">
+                    No reviews yet for this book.
+                  </Alert>
+                ) : (
+                  <>
+                    <ListGroup variant="flush" className="book-review-list">
+                      {pagedReviews.map((review) => (
+                        <ListGroup.Item key={review.id} className="px-0">
+                          <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
+                            <div className="d-flex align-items-center gap-2">
+                              <Badge bg="dark">{formatRating(normalizeHalfStepRating(review.rating))}★</Badge>
+                              <span className="text-muted small">
+                                {reviewUserNames[review.userId] ?? `User #${review.userId}`}
+                              </span>
+                            </div>
+                            <span className="text-muted small">{formatReviewDate(review.createdAt)}</span>
+                          </div>
+                          <div className="mb-0">
+                            {review.reviewText && review.reviewText.trim().length > 0
+                              ? review.reviewText
+                              : 'No review text provided.'}
+                          </div>
+                          <div className="d-flex gap-2 align-items-center mt-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={
+                                reviewLikeStates[review.id]?.liked
+                                  ? 'dark'
+                                  : 'outline-secondary'
+                              }
+                              disabled={likingReviewId === review.id || !currentUser}
+                              onClick={() => handleLikeReview(review.id)}
+                              className="d-flex align-items-center gap-1"
+                            >
+                              <span className="small">
+                                {reviewLikeStates[review.id]?.liked ? '♥' : '♡'}
+                              </span>
+                              <span className="small">
+                                {likingReviewId === review.id ? 'Liking...' : 'Like'}
+                              </span>
+                              {(reviewLikeStates[review.id]?.count ?? 0) > 0 && (
+                                <span className="small">
+                                  ({reviewLikeStates[review.id]?.count})
+                                </span>
+                              )}
+                            </Button>
+                          </div>
+                          {currentUser && review.userId === currentUser.id && (
+                            <div className="d-flex gap-2 mt-3">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline-dark"
+                                disabled={submittingReview || deletingReview}
+                                onClick={() => handleEditExistingReview(review)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline-danger"
+                                disabled={submittingReview || deletingReview}
+                                onClick={() => handleDeleteReview(review.id)}
+                              >
+                                {deletingReview ? 'Deleting...' : 'Delete'}
+                              </Button>
+                            </div>
+                          )}
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+
+                    <div className="d-flex align-items-center justify-content-between mt-3">
+                      <Button
+                        type="button"
+                        variant="outline-secondary"
+                        size="sm"
+                        disabled={reviewPage <= 0}
+                        onClick={() => setReviewPage((value) => Math.max(0, value - 1))}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-muted small">
+                        Page {reviewPage + 1} of {totalReviewPages}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline-dark"
+                        size="sm"
+                        disabled={reviewPage >= totalReviewPages - 1}
+                        onClick={() =>
+                          setReviewPage((value) => Math.min(totalReviewPages - 1, value + 1))
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </Col>
+
+              {/* ACTION PANEL COLUMN */}
+              <Col md={3} lg={3}>
+                <div className="action-panel p-3 mb-4 rounded d-flex flex-column gap-3" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+
+                  <div className="d-flex flex-column align-items-center mb-2">
+                    {currentUser ? (
+                      <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Read Or Log</span>
+                    ) : (
+                      <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Sign In To Log</span>
+                    )}
+                    <div className="d-flex gap-2 w-100 justify-content-between">
+                      <Button
+                        variant={bookLikedByCurrentUser ? 'success' : 'outline-secondary'}
+                        disabled={likingBook || !currentUser}
+                        onClick={handleLikeBook}
+                        className="d-flex flex-column align-items-center justify-content-center p-2 border-0"
+                        style={{ backgroundColor: 'transparent', flex: 1 }}
+                      >
+                        <span aria-hidden="true" className={`fs-4 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                          {bookLikedByCurrentUser ? '♥' : '♡'}
+                        </span>
+                        <div>
+                          <span className={`small fw-medium ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                            {likingBook ? '...' : (bookLikedByCurrentUser ? 'Liked' : 'Like')}
                           </span>
-                          <span className="small">
-                            {likingReviewId === review.id ? 'Liking...' : 'Like'}
-                          </span>
-                          {(reviewLikeStates[review.id]?.count ?? 0) > 0 && (
-                            <span className="small">
-                              ({reviewLikeStates[review.id]?.count})
+                          {bookLikeCount > 0 && (
+                            <span className={`small ms-1 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
+                              ({bookLikeCount})
                             </span>
                           )}
-                        </Button>
-                      </div>
-                      {currentUser && review.userId === currentUser.id && (
-                        <div className="d-flex gap-2 mt-3">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline-dark"
-                            disabled={submittingReview || deletingReview}
-                            onClick={() => handleEditExistingReview(review)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline-danger"
-                            disabled={submittingReview || deletingReview}
-                            onClick={() => handleDeleteReview(review.id)}
-                          >
-                            {deletingReview ? 'Deleting...' : 'Delete'}
-                          </Button>
                         </div>
-                      )}
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-
-                <div className="d-flex align-items-center justify-content-between mt-3">
-                  <Button
-                    type="button"
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={reviewPage <= 0}
-                    onClick={() => setReviewPage((value) => Math.max(0, value - 1))}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-muted small">
-                    Page {reviewPage + 1} of {totalReviewPages}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline-dark"
-                    size="sm"
-                    disabled={reviewPage >= totalReviewPages - 1}
-                    onClick={() =>
-                      setReviewPage((value) => Math.min(totalReviewPages - 1, value + 1))
-                    }
-                  >
-                    Next
-                  </Button>
-                </div>
-              </>
-            )}
-          </Col>
-
-          {/* ACTION PANEL COLUMN */}
-          <Col md={3} lg={3}>
-            <div className="action-panel p-3 mb-4 rounded d-flex flex-column gap-3" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
-              
-              <div className="d-flex flex-column align-items-center mb-2">
-                {currentUser ? (
-                  <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Read Or Log</span>
-                ) : (
-                  <span className="small text-uppercase text-muted fw-bold tracking-wider mb-2">Sign In To Log</span>
-                )}
-                <div className="d-flex gap-2 w-100 justify-content-between">
-                  <Button
-                    variant={bookLikedByCurrentUser ? 'success' : 'outline-secondary'}
-                    disabled={likingBook || !currentUser}
-                    onClick={handleLikeBook}
-                    className="d-flex flex-column align-items-center justify-content-center p-2 border-0"
-                    style={{ backgroundColor: 'transparent', flex: 1 }}
-                  >
-                    <span aria-hidden="true" className={`fs-4 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
-                      {bookLikedByCurrentUser ? '♥' : '♡'}
-                    </span>
-                    <div>
-                      <span className={`small fw-medium ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
-                        {likingBook ? '...' : (bookLikedByCurrentUser ? 'Liked' : 'Like')}
-                      </span>
-                      {bookLikeCount > 0 && (
-                        <span className={`small ms-1 ${bookLikedByCurrentUser ? 'text-success' : 'text-muted'}`}>
-                          ({bookLikeCount})
-                        </span>
-                      )}
+                      </Button>
                     </div>
-                  </Button>
-                </div>
-              </div>
-
-              {likeError && <div className="text-danger small text-center">{likeError}</div>}
-
-              {currentUser && (
-                <div className="border-top border-secondary pt-3">
-                  <ReadingStatusActions
-                    currentStatus={currentStatus}
-                    isSaving={savingStatus}
-                    onSetStatus={handleSetStatus}
-                  />
-                </div>
-              )}
-            </div>
-
-            {ratingWarning && (
-              <Alert variant="warning" className="py-2 mb-3">
-                {ratingWarning}
-              </Alert>
-            )}
-
-            <div className="book-review-panel p-3 mb-4 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
-              <h6 className="mb-3 text-uppercase tracking-wider text-muted small">{existingReview ? 'Edit Your Review' : 'Add Your Review'}</h6>
-              {reviewError && <Alert variant="danger" className="p-2 small">{reviewError}</Alert>}
-              {reviewSuccess && <Alert variant="success" className="p-2 small">{reviewSuccess}</Alert>}
-              <Form onSubmit={handleReviewSubmit} className="mb-0">
-                <div className="mb-3">
-                  <div className="small text-muted mb-2">Your rating</div>
-                  <div className="star-rating-selector" role="radiogroup" aria-label="Select rating from 1 to 5 in 0.5 steps">
-                    {[1, 2, 3, 4, 5].map((starNumber) => {
-                      const fillPercentage = getStarFillPercentage(starNumber, selectedRating)
-                      const leftHalfValue = Math.max(1, starNumber - 0.5)
-                      const rightHalfValue = starNumber
-
-                      return (
-                        <div key={starNumber} className="star-split-control">
-                          <button
-                            type="button"
-                            className="star-half-button left"
-                            onClick={() => setSelectedRating(leftHalfValue)}
-                            aria-label={`Set rating to ${formatRating(leftHalfValue)} stars`}
-                          />
-                          <button
-                            type="button"
-                            className="star-half-button right"
-                            onClick={() => setSelectedRating(rightHalfValue)}
-                            aria-label={`Set rating to ${formatRating(rightHalfValue)} stars`}
-                          />
-                          <span className="star-icon" aria-hidden="true">
-                            <span className="star-icon-base">★</span>
-                            <span className="star-icon-fill" style={{ width: `${fillPercentage}%` }}>
-                              ★
-                            </span>
-                          </span>
-                        </div>
-                      )
-                    })}
                   </div>
-                  <div className="small text-muted mt-1">
-                    {selectedRating > 0 ? `${formatRating(selectedRating)} / 5` : 'Not selected'}
-                  </div>
-                </div>
 
-                <Form.Group className="mb-3" controlId="review-text">
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={reviewText}
-                    onChange={(event) => setReviewText(event.target.value)}
-                    placeholder="Write a short review..."
-                    className="bg-dark text-light border-secondary"
-                  />
-                </Form.Group>
+                  {likeError && <div className="text-danger small text-center">{likeError}</div>}
 
-                <div className="d-flex flex-column gap-2">
-                  <Button type="submit" variant="success" size="sm" className="w-100" disabled={submittingReview || deletingReview}>
-                    {submittingReview
-                      ? existingReview
-                        ? 'Saving...'
-                        : 'Submitting...'
-                      : existingReview
-                        ? 'Save Changes'
-                        : 'Submit Review'}
-                  </Button>
-                  {existingReview && (
-                    <Button
-                      type="button"
-                      variant="outline-danger"
-                      size="sm"
-                      className="w-100"
-                      disabled={submittingReview || deletingReview}
-                      onClick={() => handleDeleteReview(existingReview.id)}
-                    >
-                      {deletingReview ? 'Deleting...' : 'Delete Review'}
-                    </Button>
+                  {currentUser && (
+                    <div className="border-top border-secondary pt-3">
+                      <ReadingStatusActions
+                        currentStatus={currentStatus}
+                        isSaving={savingStatus}
+                        onSetStatus={handleSetStatus}
+                      />
+                      <div className="mt-3">
+                        <Link
+                          to={`/books/${parsedBookId}/read-session`}
+                          className="btn btn-outline-success w-100 d-flex align-items-center justify-content-center gap-2"
+                        >
+                          <span>⏱</span> Log Reading Session
+                        </Link>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </Form>
-            </div>
 
-            <div className="book-rating-summary p-3 mb-3 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
-              <h6 className="mb-2 text-uppercase tracking-wider text-muted small">Average Rating</h6>
-              <div className="book-average-rating d-flex align-items-baseline gap-2 text-white fs-3 fw-bold">
-                {averageRating !== null ? averageRating.toFixed(1) : 'N/A'}
-                <span className="text-muted small fs-6">/ 5</span>
+              {ratingWarning && (
+                <Alert variant="warning" className="py-2 mb-3">
+                  {ratingWarning}
+                </Alert>
+              )}
+
+              <div className="book-review-panel p-3 mb-4 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+                <h6 className="mb-3 text-uppercase tracking-wider text-muted small">{existingReview ? 'Edit Your Review' : 'Add Your Review'}</h6>
+                {reviewError && <Alert variant="danger" className="p-2 small">{reviewError}</Alert>}
+                {reviewSuccess && <Alert variant="success" className="p-2 small">{reviewSuccess}</Alert>}
+                <Form onSubmit={handleReviewSubmit} className="mb-0">
+                  <div className="mb-3">
+                    <div className="small text-muted mb-2">Your rating</div>
+                    <div className="star-rating-selector" role="radiogroup" aria-label="Select rating from 1 to 5 in 0.5 steps">
+                      {[1, 2, 3, 4, 5].map((starNumber) => {
+                        const fillPercentage = getStarFillPercentage(starNumber, selectedRating)
+                        const leftHalfValue = Math.max(1, starNumber - 0.5)
+                        const rightHalfValue = starNumber
+
+                        return (
+                          <div key={starNumber} className="star-split-control">
+                            <button
+                              type="button"
+                              className="star-half-button left"
+                              onClick={() => setSelectedRating(leftHalfValue)}
+                              aria-label={`Set rating to ${formatRating(leftHalfValue)} stars`}
+                            />
+                            <button
+                              type="button"
+                              className="star-half-button right"
+                              onClick={() => setSelectedRating(rightHalfValue)}
+                              aria-label={`Set rating to ${formatRating(rightHalfValue)} stars`}
+                            />
+                            <span className="star-icon" aria-hidden="true">
+                              <span className="star-icon-base">★</span>
+                              <span className="star-icon-fill" style={{ width: `${fillPercentage}%` }}>
+                                ★
+                              </span>
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="small text-muted mt-1">
+                      {selectedRating > 0 ? `${formatRating(selectedRating)} / 5` : 'Not selected'}
+                    </div>
+                  </div>
+
+                  <Form.Group className="mb-3" controlId="review-text">
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={reviewText}
+                      onChange={(event) => setReviewText(event.target.value)}
+                      placeholder="Write a short review..."
+                      className="bg-dark text-light border-secondary"
+                    />
+                  </Form.Group>
+
+                  <div className="d-flex flex-column gap-2">
+                    <Button type="submit" variant="success" size="sm" className="w-100" disabled={submittingReview || deletingReview}>
+                      {submittingReview
+                        ? existingReview
+                          ? 'Saving...'
+                          : 'Submitting...'
+                        : existingReview
+                          ? 'Save Changes'
+                          : 'Submit Review'}
+                    </Button>
+                    {existingReview && (
+                      <Button
+                        type="button"
+                        variant="outline-danger"
+                        size="sm"
+                        className="w-100"
+                        disabled={submittingReview || deletingReview}
+                        onClick={() => handleDeleteReview(existingReview.id)}
+                      >
+                        {deletingReview ? 'Deleting...' : 'Delete Review'}
+                      </Button>
+                    )}
+                  </div>
+                </Form>
               </div>
-              <div className="text-muted small mt-1">Based on {reviews.length} review(s)</div>
-            </div>
 
-            <div className="book-rating-distribution mb-5 mt-4">
-              <h6 className="mb-3 text-uppercase tracking-wider text-muted small">Rating Distribution</h6>
-              {distribution.map((item) => (
-                <div key={item.stars} className="d-flex align-items-center gap-3 mb-2">
-                  <div className="rating-label text-muted small" style={{ width: '24px' }}>{item.stars}★</div>
-                  <ProgressBar now={item.percentage} className="flex-grow-1" style={{ height: '6px' }} />
-                  <div className="rating-count text-muted small" style={{ width: '24px', textAlign: 'right' }}>{item.count}</div>
+              <div className="book-rating-summary p-3 mb-3 rounded" style={{ backgroundColor: 'var(--app-hover-bg)', border: '1px solid var(--app-border)' }}>
+                <h6 className="mb-2 text-uppercase tracking-wider text-muted small">Average Rating</h6>
+                <div className="book-average-rating d-flex align-items-baseline gap-2 text-white fs-3 fw-bold">
+                  {averageRating !== null ? averageRating.toFixed(1) : 'N/A'}
+                  <span className="text-muted small fs-6">/ 5</span>
                 </div>
-              ))}
-            </div>
-          </Col>
-        </Row>
-      </Card.Body>
-    </Card>
-      </div>
+                <div className="text-muted small mt-1">Based on {reviews.length} review(s)</div>
+              </div>
+
+              <div className="book-rating-distribution mb-5 mt-4">
+                <h6 className="mb-3 text-uppercase tracking-wider text-muted small">Rating Distribution</h6>
+                {distribution.map((item) => (
+                  <div key={item.stars} className="d-flex align-items-center gap-3 mb-2">
+                    <div className="rating-label text-muted small" style={{ width: '24px' }}>{item.stars}★</div>
+                    <ProgressBar now={item.percentage} className="flex-grow-1" style={{ height: '6px' }} />
+                    <div className="rating-count text-muted small" style={{ width: '24px', textAlign: 'right' }}>{item.count}</div>
+                  </div>
+                ))}
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
     </div>
+    </div >
   )
 }
 

@@ -11,6 +11,7 @@ import UnifiedSearchPage from '../features/search/UnifiedSearchPage'
 import AuthorDetailPage from '../pages/AuthorDetailPage'
 import AuthorsPage from '../pages/AuthorsPage'
 import BookDetailPage from '../pages/BookDetailPage'
+import ReadingSessionPage from '../pages/ReadingSessionPage'
 import ActivityFeedPage from '../pages/ActivityFeedPage'
 import EditProfilePage from '../pages/EditProfilePage'
 import GenreDetailPage from '../pages/GenreDetailPage'
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/users/:userId" element={<UserPage />} />
         <Route path="/search" element={<UnifiedSearchPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />
+        <Route path="/books/:bookId/read-session" element={<ReadingSessionPage />} />
         <Route path="/lists/create" element={<CreateListPage />} />
         <Route path="/lists/:listId/edit" element={<EditListPage />} />
         <Route path="/activity" element={<ActivityFeedPage />} />

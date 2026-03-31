@@ -12,4 +12,5 @@ public interface ReadProgressRepository extends JpaRepository<ReadProgress, Long
     List<ReadProgress> findByBookId(Long bookId);
     List<ReadProgress> findByUserId(Long userId);
     List<ReadProgress> findByUserIdAndBookId(Long userId, Long bookId);
+    Optional<ReadProgress> findTopByUserIdAndBookIdOrderByCreatedAtDesc(Long userId, Long bookId);
 }
